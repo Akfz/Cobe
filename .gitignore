@@ -28,6 +28,8 @@ oldcode/.idea/
 
 /common/src/main/java/n/paradox/cobe/test/**
 
+/libs
+.idea
 build/
 run/
 .gradle/
