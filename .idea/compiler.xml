@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/io.github.llamalad7/mixinextras-common/0.4.1/a7f425cc49de7f10d008a9a676f5f023ebac13bb/mixinextras-common-0.4.1.jar" />
+        </processorPath>
+        <module name="Cobe.common.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <option name="modLoaderTarget" value="fabric" />
+        <processorPath useClasspath="false">
+          <entry name="$PROJECT_DIR$/libs/aslib-common-0.jar" />
+          <entry name="$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/io.github.llamalad7/mixinextras-common/0.4.1/a7f425cc49de7f10d008a9a676f5f023ebac13bb/mixinextras-common-0.4.1.jar" />
+        </processorPath>
+        <module name="Cobe.fabric.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <option name="modLoaderTarget" value="forge" />
+        <option name="outMapFileWithMappings" value="true" />
+        <option name="outRefMapFile" value="$PROJECT_DIR$/forge/build/resources/main/cobe.refmap.json" />
+        <processorPath useClasspath="false">
+          <entry name="$PROJECT_DIR$/libs/aslib-common-0.jar" />
+          <entry name="$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.7/3d051c66329d162a52fc062f7da912c37904a6a0/mixin-0.8.7-processor.jar" />
+          <entry name="$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/io.github.llamalad7/mixinextras-common/0.4.1/a7f425cc49de7f10d008a9a676f5f023ebac13bb/mixinextras-common-0.4.1.jar" />
+        </processorPath>
+        <module name="Cobe.forge.main" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="17" />
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Cobe.fabric" options="-AmodLoaderTarget=fabric" />
+      <module name="Cobe.fabric.main" options="-AmodLoaderTarget=fabric" />
+      <module name="Cobe.fabric.test" options="-AmodLoaderTarget=fabric" />
+      <module name="Cobe.forge" options="-AmodLoaderTarget=forge" />
+      <module name="Cobe.forge.main" options="-AoutRefMapFile=$PROJECT_DIR$/forge/build/resources/main/cobe.refmap.json -AoutMapFileWithMappings=true -AmodLoaderTarget=forge" />
+      <module name="Cobe.forge.test" options="-AmodLoaderTarget=forge" />
+      <module name="Template.fabric" options="-AmodLoaderTarget=fabric" />
+      <module name="Template.fabric.main" options="-AmodLoaderTarget=fabric" />
+      <module name="Template.fabric.test" options="-AmodLoaderTarget=fabric" />
+      <module name="Template.forge" options="-AmodLoaderTarget=forge" />
+      <module name="Template.forge.main" options="-AoutRefMapFile=$PROJECT_DIR$/forge/build/resources/main/template.refmap.json -AoutMapFileWithMappings=true -AmodLoaderTarget=forge" />
+      <module name="Template.forge.test" options="-AmodLoaderTarget=forge" />
+    </option>
+  </component>
+</project>

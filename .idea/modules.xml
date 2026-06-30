@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/Cobe.common.main.iml" filepath="$PROJECT_DIR$/.idea/modules/common/Cobe.common.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/Cobe.common.test.iml" filepath="$PROJECT_DIR$/.idea/modules/common/Cobe.common.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fabric/Cobe.fabric.main.iml" filepath="$PROJECT_DIR$/.idea/modules/fabric/Cobe.fabric.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fabric/Cobe.fabric.test.iml" filepath="$PROJECT_DIR$/.idea/modules/fabric/Cobe.fabric.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/forge/Cobe.forge.main.iml" filepath="$PROJECT_DIR$/.idea/modules/forge/Cobe.forge.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/forge/Cobe.forge.test.iml" filepath="$PROJECT_DIR$/.idea/modules/forge/Cobe.forge.test.iml" />
+    </modules>
+  </component>
+</project>

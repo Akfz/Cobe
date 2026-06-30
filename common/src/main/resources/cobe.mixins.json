@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "n.paradox.cobe.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "plugin": "n.paradox.aslib.mixin.plugin.AsLibMixinPlugin",
+  "mixins": [
+    "client.EntityRenderersClientMixin",
+    "BuiltInRegistriesMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

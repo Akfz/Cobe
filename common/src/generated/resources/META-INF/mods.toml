@@ -1,0 +1,27 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+
+[[mods]]
+modId="cobe"
+version="1.0"
+displayName="Cobe_mod"
+logoFile="icon.png"
+authors="null;Paradox team{Akaize, SweetB1ans}"
+description="""
+We want to be better than geckolib, but we still love him. / Ð¼Ñ ÑÐ¾ÑÐ¸Ð¼ Ð±ÑÑÑ Ð»ÑÑÑÐµ Ð³ÐµÐºÐ¾Ð»Ð¸Ð±, Ð½Ð¾ Ð¼Ñ Ð²ÑÐµ ÑÐ°Ð²Ð½Ð¾ ÐµÐ³Ð¾ Ð»ÑÐ±Ð¸Ð¼"""
+
+[[dependencies.cobe]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,1.21)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.cobe]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+
