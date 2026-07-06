@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom'
+    id 'fabric-loom' version "${fabric_loom_version}"
 }
 
 base {
@@ -13,34 +13,41 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-1.20.1:2023.09.03")
+    }
     modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
 
     compileOnly "io.github.llamalad7:mixinextras-common:0.4.1"
     annotationProcessor "io.github.llamalad7:mixinextras-common:0.4.1"
-
-    implementation project(path: ":common", configuration: "namedElements")
 }
+
+evaluationDependsOn(':bridge')
 
 sourceSets {
     main {
         java {
-            srcDirs = ['src/main/java']
-            srcDirs += project(':common').file("src/sharedMixins/java")
-            srcDirs += project(':common').file("src/generated/java")
+            srcDirs = [
+                    'src/main/java',
+                    project(':bridge').file('build/bridge/java')
+            ]
         }
         resources {
-            srcDirs = ['src/main/resources']
-            srcDirs += project(':common').file("src/main/resources")
-            srcDirs += project(':common').file("src/generated/resources")
+            srcDirs = [
+                    'src/main/resources',
+                    project(':bridge').file('build/bridge/resources')
+            ]
         }
     }
 }
 
 tasks.named('compileJava', JavaCompile) {
-    dependsOn project(':common').tasks.named('compileJava')
+    dependsOn project(':bridge').tasks.named('copyCommon')
+}
 
-    classpath += project(':common').sourceSets.main.output
+tasks.named('processResources', ProcessResources) {
+    dependsOn project(':bridge').tasks.named('copyCommon')
 }
 
 loom {
@@ -53,7 +60,6 @@ loom {
     mods {
         "${project.mod_id}" {
             sourceSet sourceSets.main
-            sourceSet project(':common').sourceSets.main
         }
     }
 }
@@ -77,7 +83,6 @@ tasks.named('processResources', ProcessResources).configure {
 tasks.named('jar', Jar).configure {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
-    from project(':common').sourceSets.main.output
 }
 
 tasks.withType(JavaCompile).configureEach {

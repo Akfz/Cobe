@@ -1,4 +1,4 @@
-package v.akfz.cobe.json.animation;
+package v.akfz.cobe.loader.json.animation;
 
 import v.akfz.cobe.aengine.data.bone.BoneAData;
 

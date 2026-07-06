@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "id": "cobe",
-  "version": "1.0",
-  "name": "Cobe_mod",
-  "description": "We want to be better than geckolib, but we still love him. / Ð¼Ñ ÑÐ¾ÑÐ¸Ð¼ Ð±ÑÑÑ Ð»ÑÑÑÐµ Ð³ÐµÐºÐ¾Ð»Ð¸Ð±, Ð½Ð¾ Ð¼Ñ Ð²ÑÐµ ÑÐ°Ð²Ð½Ð¾ ÐµÐ³Ð¾ Ð»ÑÐ±Ð¸Ð¼",
+  "version": "1",
+  "name": "Cobe",
+  "description": "geckolib the best!",
   "license": "MIT",
   "icon": "assets/cobe/icon.png",
   "environment": "*",
   "authors": [
-    "null;Paradox team{Akaize",
-    "SweetB1ans}"
+    "Akaize",
+    "null;Paradox"
   ],
   "entrypoints": { "main": [ "n.paradox.cobe.CobeMod_fabric" ] },
   "mixins": [ "cobe.mixins.json" ],

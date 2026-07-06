@@ -1,4 +1,4 @@
-package v.akfz.cobe.json.model;
+package v.akfz.cobe.loader.json.model;
 
 import com.google.gson.annotations.SerializedName;
 import net.minecraft.client.Minecraft;

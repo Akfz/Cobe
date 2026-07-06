@@ -1,58 +1,125 @@
 package v.akfz.cobe.aengine.animation;
 
+import net.minecraft.client.Minecraft;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import v.akfz.cobe.aengine.data.bone.BoneAData;
 import v.akfz.cobe.aengine.data.bone.BoneTransform;
 import v.akfz.cobe.aengine.data.cache.AnimatedObjectCache;
 import v.akfz.cobe.aengine.animation.keyframe.Keyframe;
 import v.akfz.cobe.aengine.data.Transform;
 import v.akfz.cobe.aengine.data.cache.AnimationCache;
-import v.akfz.cobe.aengine.data.keyframe.KeyframeData;
-import v.akfz.cobe.json.animation.Animation;
+import v.akfz.cobe.aengine.math.EasingMath;
+import v.akfz.cobe.loader.json.animation.Animation;
 import v.akfz.cobe.aengine.data.bone.BoneRData;
 import v.akfz.cobe.aengine.data.MeshRData;
 import org.joml.Matrix4f;
 import org.jetbrains.annotations.Nullable;
+import v.akfz.cobe.loader.json.animation.AnimationsData;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class AnimationController {
+    private final AnimatedObject object;
+    public AnimationController(AnimatedObject animatedObject) {
+        this.object = animatedObject;
+    }
+
     private final Map<String, AnimationTrack> activeTracks = new HashMap<>();
+    private final Queue<QueueEntry> animationInQueue = new ConcurrentLinkedQueue<>();
+
+    private final LookAtController lookAtController = new LookAtController();
+
+    public record QueueEntry(
+            String animationName,
+            boolean loop,
+            boolean hold,
+            float transitionTimeSec,
+            int layer,
+            @Nullable Set<String> boneMask
+    ) {}
 
     public void play(String animationName, boolean loop) {
+        play(animationName, loop, false, 0.25f, 0, null);
+    }
+
+    public void play(String animationName, boolean loop, boolean hold) {
+        play(animationName, loop, hold, 0.25f, 0, null);
+    }
+
+    public void play(String animationName, boolean loop, boolean hold, float transitionTimeSec, int layer, @Nullable Set<String> boneMask) {
         Animation anim = AnimationCache.CACHED_ANIMATIONS.get(animationName);
+
+        if (anim == null) {
+            for (AnimationsData adata : AnimationCache.CACHE_ANIMATIONS.values()) {
+                for (Animation animation : adata.animations) {
+                    if (animation.name().equals(animationName)) {
+                        anim = animation;
+                        AnimationCache.CACHED_ANIMATIONS.put(animationName, animation);
+                        break;
+                    }
+                }
+                if (anim != null) {
+                    break;
+                }
+            }
+        }
+
         if (anim == null) {
             return;
         }
 
+        for (AnimationTrack track : activeTracks.values()) {
+            if (track.getLayer() == layer && !track.isStopped() && !track.getAnimation().name().equals(animationName)) {
+                track.fadeOut(transitionTimeSec);
+            }
+        }
+
         if (activeTracks.containsKey(animationName)) {
             AnimationTrack track = activeTracks.get(animationName);
-            if (track.isStopped()) {
-                track.reset();
-            } else if (track.isPaused()) {
-                track.setPaused(false);
-            }
+            track.setLoop(loop);
+            track.setHoldOnLastFrame(hold);
+            track.setLayer(layer);
+            track.setBoneMask(boneMask);
+            track.fadeIn(transitionTimeSec);
             return;
         }
 
         AnimationTrack newTrack = new AnimationTrack(anim);
         newTrack.setLoop(loop);
+        newTrack.setHoldOnLastFrame(hold);
+        newTrack.setLayer(layer);
+        newTrack.setBoneMask(boneMask);
+        newTrack.fadeIn(transitionTimeSec);
+
         activeTracks.put(animationName, newTrack);
         AsyncAnimationEngine.getInstance().start();
     }
 
+    public void queue(String animationName, boolean loop) {
+        queue(animationName, loop, false, 0.25f, 0, null);
+    }
+
+    public void queue(String animationName, boolean loop, boolean hold) {
+        queue(animationName, loop, hold, 0.25f, 0, null);
+    }
+
+    public void queue(String animationName, boolean loop, boolean hold, float transitionTimeSec, int layer, @Nullable Set<String> boneMask) {
+        animationInQueue.add(new QueueEntry(animationName, loop, hold, transitionTimeSec, layer, boneMask));
+        AsyncAnimationEngine.getInstance().start();
+    }
+
+    public void clearQueue() {
+        animationInQueue.clear();
+    }
+
     public void pause(String animationName) {
-        if (activeTracks.containsKey(animationName)) {
-            activeTracks.get(animationName).setPaused(true);
-        }
+        if (activeTracks.containsKey(animationName)) activeTracks.get(animationName).setPaused(true);
     }
 
     public void resume(String animationName) {
-        if (activeTracks.containsKey(animationName)) {
-            activeTracks.get(animationName).setPaused(false);
-        }
+        if (activeTracks.containsKey(animationName)) activeTracks.get(animationName).setPaused(false);
     }
 
     public void stop(String animationName) {
@@ -64,9 +131,13 @@ public class AnimationController {
 
     public void stopAll() {
         activeTracks.clear();
+        animationInQueue.clear();
     }
 
     public void update(float deltaTime, List<BoneRData> rootBones, AnimatedObjectCache cache) {
+        if (!this.object.shouldPlayAnimationsWhileGamePaused() && Minecraft.getInstance().isPaused()) {
+            return;
+        }
         boolean hasActive = !activeTracks.isEmpty();
 
         if (hasActive) {
@@ -75,89 +146,126 @@ public class AnimationController {
                 track.update(deltaTime);
                 return track.isStopped();
             });
-            hasActive = !activeTracks.isEmpty();
         }
 
-        Matrix4f parentWorldMatrix = new Matrix4f();
-        Matrix4f parentAnimatedMatrix = new Matrix4f();
+        processQueue();
 
+        lookAtController.update(deltaTime);
+
+        Matrix4f parentWorldMatrix = new Matrix4f();
         Matrix4f parentRestWorldMatrix = new Matrix4f();
-        Matrix4f parentRestRotationMatrix = new Matrix4f();
 
         cache.prepareWrite();
 
-        Animation animation = null;
-        float currentTime = 0f;
-
-        if (hasActive) {
-            AnimationTrack primaryTrack = activeTracks.values().iterator().next();
-            animation = primaryTrack.getAnimation();
-            currentTime = primaryTrack.getCurrentTime();
-        }
+        List<AnimationTrack> sortedTracks = activeTracks.values().stream()
+                .sorted(Comparator.comparingInt(AnimationTrack::getLayer))
+                .toList();
 
         for (BoneRData rootBone : rootBones) {
-            transformBoneRecursively(rootBone, parentRestWorldMatrix, parentRestRotationMatrix, parentWorldMatrix, parentAnimatedMatrix, animation, currentTime, cache);
+            transformBoneRecursively(rootBone, parentRestWorldMatrix, parentWorldMatrix, sortedTracks, cache);
         }
 
         cache.publish();
     }
 
-    private void transformBoneRecursively(BoneRData bone, Matrix4f parentRestWorldMatrix, Matrix4f parentRestRotationMatrix, Matrix4f parentWorldMatrix, Matrix4f parentAnimatedMatrix, @Nullable Animation animation, float currentTime, AnimatedObjectCache cache) {
+    private void processQueue() {
+        if (animationInQueue.isEmpty()) return;
+
+        QueueEntry next = animationInQueue.peek();
+        while (next != null) {
+            if (!isLayerBusy(next.layer())) {
+                animationInQueue.poll();
+                play(next.animationName(), next.loop(), next.hold(), next.transitionTimeSec(), next.layer(), next.boneMask());
+
+                next = animationInQueue.peek();
+            } else {
+                break;
+            }
+        }
+    }
+
+    private boolean isLayerBusy(int layer) {
+        for (AnimationTrack track : activeTracks.values()) {
+            if (track.getLayer() == layer && !track.isStopped()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void transformBoneRecursively(BoneRData bone, Matrix4f parentRestWorldMatrix, Matrix4f parentWorldMatrix, List<AnimationTrack> sortedTracks, AnimatedObjectCache cache) {
         String boneName = bone.name();
 
-        BoneTransform animTransform = BoneTransform.identity();
-        if (animation != null && animation.bones() != null) {
-            BoneAData boneData = null;
-            for (BoneAData ba : animation.bones()) {
-                if (ba != null && boneName.equals(ba.boneName())) {
-                    boneData = ba;
-                    break;
+        BoneTransform finalTransform = new BoneTransform(bone);
+
+        for (AnimationTrack track : sortedTracks) {
+            if (track.getBoneMask() != null && !track.getBoneMask().contains(boneName)) {
+                continue;
+            }
+
+            Animation animation = track.getAnimation();
+            BoneAData boneAnimData = null;
+            if (animation != null && animation.bones() != null) {
+                for (BoneAData ba : animation.bones()) {
+                    if (ba != null && boneName.equals(ba.boneName())) {
+                        boneAnimData = ba;
+                        break;
+                    }
                 }
             }
-            if (boneData != null) {
-                animTransform = calculateInterpolatedTransform(boneData, currentTime);
+
+            if (boneAnimData != null) {
+                float trackTime = track.getCurrentTime();
+
+                if (animation != null && animation.fps() > 0) {
+                    float frameDuration = 1.0f / animation.fps();
+                    trackTime = (float) Math.floor(trackTime / frameDuration) * frameDuration;
+                }
+
+                BoneTransform trackTransform = calculateInterpolatedTransform(boneAnimData, trackTime);
+                finalTransform = BoneTransform.blend(finalTransform, trackTransform, track.getBlendWeight());
             }
         }
-        Matrix4f animLocalMatrix = animTransform.buildMatrix();
 
-        // 1. ИСПРАВЛЕНИЕ: Накапливаем абсолютное rest-вращение кости строго по порядку Blender 'XYZ'.
-        // При умножении матриц справа для этого нужно последовательно применить Z -> Y -> X.
-        Matrix4f restRotationMatrix = new Matrix4f(parentRestRotationMatrix);
-        if (bone.rotation() != null) {
-            restRotationMatrix
-                    .rotateZ((float) Math.toRadians(bone.rotation()[2]))
-                    .rotateY((float) Math.toRadians(bone.rotation()[1]))
-                    .rotateX((float) Math.toRadians(bone.rotation()[0]));
-        }
+        finalTransform = lookAtController.apply(boneName, finalTransform);
 
-        // 2. Строим абсолютную rest-матрицу кости в мире
-        Matrix4f restWorldMatrix = new Matrix4f()
-                .translate(bone.pivot()[0] / 16.0f, bone.pivot()[1] / 16.0f, bone.pivot()[2] / 16.0f)
-                .mul(restRotationMatrix);
+        Matrix4f staticLocalMatrix = new Matrix4f()
+                .translate(bone.pivot()[0], bone.pivot()[1], bone.pivot()[2]);
 
-        // 3. Вычисляем точную относительную rest-матрицу кости к родителю
-        Matrix4f staticLocalMatrix = new Matrix4f(parentRestWorldMatrix).invert().mul(restWorldMatrix);
+        staticLocalMatrix.rotate(new Quaternionf(
+                bone.rotation()[0], bone.rotation()[1],
+                bone.rotation()[2], bone.rotation()[3]
+        ));
 
-        Matrix4f boneLocalMatrix = new Matrix4f(staticLocalMatrix).mul(animLocalMatrix);
+        float[] bScale = bone.getScale();
+        staticLocalMatrix.scale(bScale[0], bScale[1], bScale[2]);
+
+        Matrix4f boneLocalMatrix = finalTransform.buildMatrix();
 
         Matrix4f boneWorldMatrix = new Matrix4f(parentWorldMatrix).mul(boneLocalMatrix);
-        Matrix4f boneAnimatedWorldMatrix = new Matrix4f(parentAnimatedMatrix).mul(animLocalMatrix);
+        Matrix4f boneRestWorldMatrix = new Matrix4f(parentRestWorldMatrix).mul(staticLocalMatrix);
 
-        cache.setMatrix(boneName, boneLocalMatrix); // Передаем полную локальную матрицу
+        Vector3f headWorld = new Vector3f();
+        boneWorldMatrix.getTranslation(headWorld);
 
+        Vector3f tailWorld = new Vector3f();
+        boneWorldMatrix.transformPosition(new Vector3f(bone.pivotEnd()[0], bone.pivotEnd()[1], bone.pivotEnd()[2]), tailWorld);
+
+        cache.setMatrix(boneName, boneLocalMatrix);
         cache.setBoneMatrices(boneName, boneLocalMatrix, boneWorldMatrix);
+        cache.setBoneRestWorldMatrix(boneName, boneRestWorldMatrix);
+        cache.setBonePivots(boneName, headWorld, tailWorld);
 
         if (bone.meshes() != null) {
             for (MeshRData mesh : bone.meshes()) {
                 Matrix4f meshLocalMatrix = new Matrix4f();
-                Matrix4f meshWorldMatrix = new Matrix4f(boneWorldMatrix);
-                cache.setMeshMatrices(mesh, meshLocalMatrix, meshWorldMatrix);
+                cache.setMeshMatrices(mesh, meshLocalMatrix, boneWorldMatrix);
             }
         }
 
         if (bone.children() != null) {
             for (BoneRData child : bone.children()) {
-                transformBoneRecursively(child, restWorldMatrix, restRotationMatrix, boneWorldMatrix, boneAnimatedWorldMatrix, animation, currentTime, cache);
+                transformBoneRecursively(child, boneRestWorldMatrix, boneWorldMatrix, sortedTracks, cache);
             }
         }
     }
@@ -171,7 +279,7 @@ public class AnimationController {
 
         Keyframe first = keyframes.get(0);
         if (currentTime <= first.startValue() / 1000f) {
-            return BoneTransform.identity();
+            return new BoneTransform(first.data().transform());
         }
 
         Keyframe last = keyframes.get(keyframes.size() - 1);
@@ -180,17 +288,16 @@ public class AnimationController {
         }
 
         Keyframe current = null;
-        int currentIndex = -1;
+        Keyframe next = null;
 
         for (int i = 0; i < keyframes.size(); i++) {
             Keyframe kf = keyframes.get(i);
-
             float start = kf.startValue() / 1000f;
             float end = kf.endValue() / 1000f;
 
             if (currentTime >= start && currentTime < end) {
                 current = kf;
-                currentIndex = i;
+                next = (i + 1 < keyframes.size()) ? keyframes.get(i + 1) : kf;
                 break;
             }
         }
@@ -199,27 +306,22 @@ public class AnimationController {
             return new BoneTransform(last.data().transform());
         }
 
-        Transform prev;
-
-        if (currentIndex > 0)
-            prev = keyframes.get(currentIndex - 1).data().transform();
-        else
-            prev = current.data().transform();
-
-        Transform next = current.data().transform();
+        Transform prevTransform = current.data().transform();
+        Transform nextTransform = (next != null) ? next.data().transform() : prevTransform;
 
         float startTime = current.startValue() / 1000f;
         float endTime = current.endValue() / 1000f;
 
-        float alpha = (currentTime - startTime) / (endTime - startTime);
-        alpha = Math.max(0f, Math.min(1f, alpha));
+        float alpha = 0f;
+        if (endTime > startTime) {
+            alpha = (currentTime - startTime) / (endTime - startTime);
+            alpha = Math.max(0f, Math.min(1f, alpha));
+        }
 
         switch (current.data().interpolation()) {
             case STEP -> alpha = 0f;
             case BEZIER -> {
-                if (current.data().bezierArgs() != null &&
-                        current.data().bezierArgs().size() == 4) {
-
+                if (current.data().bezierArgs() != null && current.data().bezierArgs().size() == 4) {
                     alpha = getBezierValue(
                             alpha,
                             current.data().bezierArgs().get(0),
@@ -229,43 +331,33 @@ public class AnimationController {
                     );
                 }
             }
+            default -> {
+                alpha = EasingMath.apply(alpha, current.data().interpolation(), current.data().easing());
+            }
         }
 
-        float posX = lerp(prev.posX(), next.posX(), alpha);
-        float posY = lerp(prev.posY(), next.posY(), alpha);
-        float posZ = lerp(prev.posZ(), next.posZ(), alpha);
+        float posX = lerp(prevTransform.posX(), nextTransform.posX(), alpha);
+        float posY = lerp(prevTransform.posY(), nextTransform.posY(), alpha);
+        float posZ = lerp(prevTransform.posZ(), nextTransform.posZ(), alpha);
 
-        float scaleX = lerp(prev.scaleX(), next.scaleX(), alpha);
-        float scaleY = lerp(prev.scaleY(), next.scaleY(), alpha);
-        float scaleZ = lerp(prev.scaleZ(), next.scaleZ(), alpha);
+        float scaleX = lerp(prevTransform.scaleX(), nextTransform.scaleX(), alpha);
+        float scaleY = lerp(prevTransform.scaleY(), nextTransform.scaleY(), alpha);
+        float scaleZ = lerp(prevTransform.scaleZ(), nextTransform.scaleZ(), alpha);
 
         Quaternionf q0 = new Quaternionf(
-                prev.rotX(),
-                prev.rotY(),
-                prev.rotZ(),
-                prev.rotW()
+                prevTransform.rotX(), prevTransform.rotY(), prevTransform.rotZ(), prevTransform.rotW()
         );
 
         Quaternionf q1 = new Quaternionf(
-                next.rotX(),
-                next.rotY(),
-                next.rotZ(),
-                next.rotW()
+                nextTransform.rotX(), nextTransform.rotY(), nextTransform.rotZ(), nextTransform.rotW()
         );
 
-        Quaternionf rotation = q0.slerp(q1, alpha);
+        Quaternionf rotation = new Quaternionf(q0).slerp(q1, alpha);
 
         return new BoneTransform(new Transform(
-                posX,
-                posY,
-                posZ,
-                rotation.x,
-                rotation.y,
-                rotation.z,
-                rotation.w,
-                scaleX,
-                scaleY,
-                scaleZ
+                posX, posY, posZ,
+                rotation.x, rotation.y, rotation.z, rotation.w,
+                scaleX, scaleY, scaleZ
         ));
     }
 
@@ -274,9 +366,8 @@ public class AnimationController {
     }
 
     private float getBezierValue(float alpha, float x1, float y1, float x2, float y2) {
-        if (alpha == 0.0 || alpha == 1.0) {
-            return alpha;
-        }
+        if (alpha <= 0f) return 0f;
+        if (alpha >= 1f) return 1f;
 
         float t = alpha;
         for (int i = 0; i < 8; i++) {
@@ -291,5 +382,13 @@ public class AnimationController {
 
     public Map<String, AnimationTrack> getActiveTracks() {
         return activeTracks;
+    }
+
+    public Queue<QueueEntry> getAnimationInQueue() {
+        return animationInQueue;
+    }
+
+    public LookAtController getLookAt() {
+        return lookAtController;
     }
 }

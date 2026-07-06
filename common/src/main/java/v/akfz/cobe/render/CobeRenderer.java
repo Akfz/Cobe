@@ -7,8 +7,10 @@ import com.mojang.math.Axis;
 import v.akfz.cobe.aengine.animation.AnimatedObject;
 import v.akfz.cobe.aengine.data.bone.BoneRData;
 import v.akfz.cobe.aengine.data.MeshRData;
-import v.akfz.cobe.json.model.ModelData;
-import v.akfz.cobe.json.model.BoneTexture;
+import v.akfz.cobe.aengine.data.cache.AnimatedObjectCache;
+import v.akfz.cobe.aengine.data.cache.ModelCache;
+import v.akfz.cobe.loader.json.model.ModelData;
+import v.akfz.cobe.loader.json.model.BoneTexture;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -20,26 +22,31 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.jetbrains.annotations.Nullable;
+import v.akfz.cobe.loader.util.FileLoader;
 
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+//к любому рендеру просто instance CobeRenderer прописывать и все заработает
 public interface CobeRenderer<T extends AnimatedObject> {
 
     ResourceLocation NULL_TEXTURE = new ResourceLocation("cobe", "textures/notexture.png");
 
     Map<String, ResourceLocation> DYNAMIC_CACHE = new ConcurrentHashMap<>();
 
-    ModelData getModel();
+    String getNameOfModel();
     T getAnimatedObject();
 
-    /**
-     * Регистрирует внешнюю текстуру напрямую по уже готовому и разрешенному объекту Path.
-     */
+    @Nullable
+    default ModelData getModelData(String name) {
+        return ModelCache.CACHED_MODEL.get(name);
+    }
+
     static ResourceLocation getOrCreateDynamicTexture(Path path) {
         if (path == null) {
             return NULL_TEXTURE;
@@ -72,39 +79,8 @@ public interface CobeRenderer<T extends AnimatedObject> {
         });
     }
 
-    /**
-     * Метод-совместитель для обработки сырых строковых путей из JSON.
-     */
-    static ResourceLocation getOrCreateDynamicTexture(String loc) {
-        if (loc == null || loc.isEmpty()) {
-            return NULL_TEXTURE;
-        }
-
-        ResourceLocation rl = ResourceLocation.tryParse(loc);
-        return rl != null ? rl : NULL_TEXTURE;
-    }
-
-    /**
-     * Безопасно возвращает дефолтную текстуру модели.
-     */
-    default ResourceLocation getTexture() {
-        ModelData model = getModel();
-        if (model != null && model.texturePaths != null && !model.texturePaths.isEmpty()) {
-            BoneTexture bt = model.texturePaths.get(0);
-            if (bt.locIsRl()) {
-                return bt.getRl() != null ? bt.getRl() : NULL_TEXTURE;
-            } else {
-                return getOrCreateDynamicTexture(bt.getPath());
-            }
-        }
-        return NULL_TEXTURE;
-    }
-
-    /**
-     * Ищет кастомную текстуру для конкретной кости по её имени.
-     */
     default @Nullable ResourceLocation getBoneTextureOverride(String boneName) {
-        ModelData model = getModel();
+        ModelData model = getModelData(getNameOfModel());
         if (model != null && model.texturePaths != null) {
             for (BoneTexture bt : model.texturePaths) {
                 if (bt.getBone() != null && bt.getBone().equals(boneName)) {
@@ -120,12 +96,15 @@ public interface CobeRenderer<T extends AnimatedObject> {
     }
 
     default RenderType getRenderType() {
-        return RenderType.entityCutoutNoCull(getTexture());
+        return RenderType.cutout();
     }
 
     default void defaultRender(PoseStack poseStack, T animated, MultiBufferSource bufferSource, @Nullable RenderType renderType, @Nullable VertexConsumer buffer,
-                               float yaw, float partialTick, int packedLight) {
+                               float partialTick, int packedLight) {
         poseStack.pushPose();
+
+        poseStack.scale(-1.0f, 1.0f, 1.0f);
+        poseStack.mulPose(Axis.YN.rotationDegrees(180.0F));
 
         float red = 1.0f;
         float green = 1.0f;
@@ -137,30 +116,41 @@ public interface CobeRenderer<T extends AnimatedObject> {
             renderType = getRenderType();
         }
 
-        ModelData modelData = getModel();
+        Matrix4f entityWorldMatrix = new Matrix4f(poseStack.last().pose());
+
+        ModelData modelData = getModelData(getNameOfModel());
         if (modelData != null && modelData.bones != null) {
             if (animated.getCache() != null && animated.getCache().getRootBones() == null) {
                 animated.getCache().setRootBones(modelData.bones);
             }
 
             for (BoneRData rootBone : modelData.bones) {
-                renderBoneRecursively(poseStack, animated, rootBone, bufferSource, renderType, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+                renderBoneRecursively(poseStack, entityWorldMatrix, animated, rootBone, bufferSource, renderType, buffer, packedLight, packedOverlay, red, green, blue, alpha);
             }
         }
 
         poseStack.popPose();
     }
 
-    private void renderBoneRecursively(PoseStack poseStack, T animated, BoneRData bone, MultiBufferSource bufferSource, RenderType defaultRenderType, @Nullable VertexConsumer defaultBuffer,
+    private void renderBoneRecursively(PoseStack poseStack, Matrix4f entityWorldMatrix, T animated, BoneRData bone, MultiBufferSource bufferSource, RenderType defaultRenderType, @Nullable VertexConsumer defaultBuffer,
                                        int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         poseStack.pushPose();
 
+        Matrix4f boneMatrix = null;
+
         if (animated.getCache() != null) {
-            Matrix4f boneMatrix = animated.getCache().getMatrix(bone.name());
-            if (boneMatrix != null) {
-                poseStack.last().pose().mul(boneMatrix);
-            }
+            boneMatrix = animated.getCache().getBoneWorldMatrix(bone.name());
         }
+
+        if (boneMatrix == null) {
+            System.out.println("bone matrix is null");
+            return;
+        }
+
+        Matrix4f renderMatrix = new Matrix4f(entityWorldMatrix).mul(boneMatrix);
+
+        poseStack.last().pose().set(renderMatrix);
+        poseStack.last().normal().set(new Matrix3f(renderMatrix));
 
         VertexConsumer activeBuffer = defaultBuffer;
         ResourceLocation boneTextureOverride = getBoneTextureOverride(bone.name());
@@ -173,13 +163,13 @@ public interface CobeRenderer<T extends AnimatedObject> {
 
         if (bone.meshes() != null) {
             for (MeshRData mesh : bone.meshes()) {
-                renderMesh(poseStack, mesh, activeBuffer, packedLight, packedOverlay, red, green, blue, alpha);
+                renderMesh(poseStack, mesh, activeBuffer, packedLight, packedOverlay, red, green, blue, alpha, animated, entityWorldMatrix);
             }
         }
 
         if (bone.children() != null) {
             for (BoneRData child : bone.children()) {
-                renderBoneRecursively(poseStack, animated, child, bufferSource, defaultRenderType, defaultBuffer, packedLight, packedOverlay, red, green, blue, alpha);
+                renderBoneRecursively(poseStack, entityWorldMatrix, animated, child, bufferSource, defaultRenderType, defaultBuffer, packedLight, packedOverlay, red, green, blue, alpha);
             }
         }
 
@@ -187,9 +177,15 @@ public interface CobeRenderer<T extends AnimatedObject> {
     }
 
     private void renderMesh(PoseStack poseStack, MeshRData mesh, VertexConsumer buffer,
-                            int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                            int packedLight, int packedOverlay, float red, float green, float blue, float alpha, T animated, Matrix4f entityWorldMatrix) {
         Matrix4f poseMatrix = poseStack.last().pose();
         Matrix3f normalMatrix = poseStack.last().normal();
+
+        AnimatedObjectCache cache = animated.getCache();
+        boolean isSkinned = mesh.isSkinned() && cache != null;
+
+        Matrix4f activePoseMatrix = isSkinned ? entityWorldMatrix : poseMatrix;
+        Matrix3f activeNormalMatrix = isSkinned ? new Matrix3f(entityWorldMatrix) : normalMatrix;
 
         for (MeshRData.FaceData face : mesh.faces()) {
             int[] vertexIndices = face.vertexIndices();
@@ -197,24 +193,26 @@ public interface CobeRenderer<T extends AnimatedObject> {
             int vertexCount = vertexIndices.length;
             if (vertexCount < 3) continue;
 
-            // 1. Математически верный расчет нормали плоскости (Векторное произведение e1 x e2)
             float[] v0 = mesh.vertices().get(vertexIndices[0]);
             float[] v1 = mesh.vertices().get(vertexIndices[1]);
             float[] v2 = mesh.vertices().get(vertexIndices[2]);
 
-            float e1x = (v1[0] - v0[0]) / 16.0f;
-            float e1y = (v1[1] - v0[1]) / 16.0f;
-            float e1z = (v1[2] - v0[2]) / 16.0f;
+            Vector4f skinnedV0 = getSkinnedVertex(v0, vertexIndices[0], mesh, cache);
+            Vector4f skinnedV1 = getSkinnedVertex(v1, vertexIndices[1], mesh, cache);
+            Vector4f skinnedV2 = getSkinnedVertex(v2, vertexIndices[2], mesh, cache);
 
-            float e2x = (v2[0] - v0[0]) / 16.0f;
-            float e2y = (v2[1] - v0[1]) / 16.0f;
-            float e2z = (v2[2] - v0[2]) / 16.0f;
+            float e1x = (skinnedV1.x() - skinnedV0.x());
+            float e1y = (skinnedV1.y() - skinnedV0.y());
+            float e1z = (skinnedV1.z() - skinnedV0.z());
 
-            // e1 x e2
+            float e2x = (skinnedV2.x() - skinnedV0.x());
+            float e2y = (skinnedV2.y() - skinnedV0.y());
+            float e2z = (skinnedV2.z() - skinnedV0.z());
+
             Vector3f localNormal = new Vector3f(
-                    e1y * e2z - e1z * e2y,
-                    e1z * e2x - e1x * e2z,
-                    e1x * e2y - e1y * e2x
+                    e2y * e1z - e2z * e1y,
+                    e2z * e1x - e2x * e1z,
+                    e2x * e1y - e2y * e1x
             );
             if (localNormal.lengthSquared() > 0) {
                 localNormal.normalize();
@@ -223,30 +221,24 @@ public interface CobeRenderer<T extends AnimatedObject> {
             }
 
             Vector3f transformedNormal = new Vector3f(localNormal);
-            normalMatrix.transform(transformedNormal);
+            activeNormalMatrix.transform(transformedNormal);
             if (transformedNormal.lengthSquared() > 0) {
                 transformedNormal.normalize();
             } else {
                 transformedNormal.set(0, 1, 0);
             }
 
-            // 2. Рендеринг геометрии строго группами по 4 вершины (QUADS)
             if (vertexCount == 4) {
-                // Если это четырехугольник (как ваш Plane), рисуем его напрямую
-                int[] quadIndices = {0, 1, 2, 3};
+                int[] quadIndices = {0, 3, 2, 1};
                 for (int step : quadIndices) {
                     int vertexIndex = vertexIndices[step];
                     int uvIndex = uvIndices[step];
                     float[] vertexPos = mesh.vertices().get(vertexIndex);
                     float[] uv = mesh.uvs().get(uvIndex);
 
-                    Vector4f worldPos = new Vector4f(
-                            vertexPos[0] / 16.0f,
-                            vertexPos[1] / 16.0f,
-                            vertexPos[2] / 16.0f,
-                            1.0f
-                    );
-                    poseMatrix.transform(worldPos);
+                    Vector4f skinnedV = getSkinnedVertex(vertexPos, vertexIndex, mesh, cache);
+                    Vector4f worldPos = new Vector4f(skinnedV.x(), skinnedV.y(), skinnedV.z(), 1.0f);
+                    activePoseMatrix.transform(worldPos);
 
                     buffer.vertex(
                             worldPos.x(), worldPos.y(), worldPos.z(),
@@ -257,23 +249,17 @@ public interface CobeRenderer<T extends AnimatedObject> {
                     );
                 }
             } else {
-                // Для треугольников и n-гонов разбиваем их на треугольники,
-                // но каждый треугольник отправляем как вырожденный квад {0, i, i + 1, i + 1}
                 for (int i = 1; i < vertexCount - 1; i++) {
-                    int[] stepIndices = {0, i, i + 1, i + 1};
+                    int[] stepIndices = {0, i + 1, i, i};
                     for (int step : stepIndices) {
                         int vertexIndex = vertexIndices[step];
                         int uvIndex = uvIndices[step];
                         float[] vertexPos = mesh.vertices().get(vertexIndex);
                         float[] uv = mesh.uvs().get(uvIndex);
 
-                        Vector4f worldPos = new Vector4f(
-                                vertexPos[0] / 16.0f,
-                                vertexPos[1] / 16.0f,
-                                vertexPos[2] / 16.0f,
-                                1.0f
-                        );
-                        poseMatrix.transform(worldPos);
+                        Vector4f skinnedV = getSkinnedVertex(vertexPos, vertexIndex, mesh, cache);
+                        Vector4f worldPos = new Vector4f(skinnedV.x(), skinnedV.y(), skinnedV.z(), 1.0f);
+                        activePoseMatrix.transform(worldPos);
 
                         buffer.vertex(
                                 worldPos.x(), worldPos.y(), worldPos.z(),
@@ -286,5 +272,34 @@ public interface CobeRenderer<T extends AnimatedObject> {
                 }
             }
         }
+    }
+
+    private Vector4f getSkinnedVertex(float[] restPos, int vertexIndex, MeshRData mesh, @Nullable AnimatedObjectCache cache) {
+        if (!mesh.isSkinned() || cache == null) {
+            return new Vector4f(restPos[0], restPos[1], restPos[2], 1.0f);
+        }
+
+        MeshRData.SkinningData skin = mesh.skinningData().get(vertexIndex);
+        Vector3f skinned = new Vector3f(0, 0, 0);
+
+        for (int i = 0; i < 4; i++) {
+            float weight = skin.weights()[i];
+            if (weight <= 0.0f) continue;
+
+            String jointName = skin.joints()[i];
+            if (jointName == null || jointName.isEmpty()) continue;
+
+            Matrix4f worldMatrix = cache.getBoneWorldMatrix(jointName);
+            Matrix4f restMatrix = cache.getBoneRestWorldMatrix(jointName);
+
+            Matrix4f jointSkinMatrix = new Matrix4f(worldMatrix).mul(new Matrix4f(restMatrix).invert());
+
+            Vector4f temp = new Vector4f(restPos[0], restPos[1], restPos[2], 1.0f);
+            jointSkinMatrix.transform(temp);
+
+            skinned.add(new Vector3f(temp.x(), temp.y(), temp.z()).mul(weight));
+        }
+
+        return new Vector4f(skinned.x(), skinned.y(), skinned.z(), 1.0f);
     }
 }

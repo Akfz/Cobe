@@ -4,12 +4,12 @@ license="MIT"
 
 [[mods]]
 modId="cobe"
-version="1.0"
-displayName="Cobe_mod"
+version="1"
+displayName="Cobe"
 logoFile="icon.png"
-authors="null;Paradox team{Akaize, SweetB1ans}"
+authors="Akaize, null;Paradox"
 description="""
-We want to be better than geckolib, but we still love him. / Ð¼Ñ ÑÐ¾ÑÐ¸Ð¼ Ð±ÑÑÑ Ð»ÑÑÑÐµ Ð³ÐµÐºÐ¾Ð»Ð¸Ð±, Ð½Ð¾ Ð¼Ñ Ð²ÑÐµ ÑÐ°Ð²Ð½Ð¾ ÐµÐ³Ð¾ Ð»ÑÐ±Ð¸Ð¼"""
+geckolib the best!"""
 
 [[dependencies.cobe]]
     modId="minecraft"

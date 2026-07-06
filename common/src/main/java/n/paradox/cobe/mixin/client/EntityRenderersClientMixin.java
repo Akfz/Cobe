@@ -2,7 +2,7 @@ package n.paradox.cobe.mixin.client;
 
 import n.paradox.aslib.AsLib;
 import n.paradox.cobe.event.RegisterEntityRendererEvent;
-import n.paradox.cobe.event.listener.RegisterEntityRendererListener;
+import n.paradox.cobe.util.EntityRendererData;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.world.entity.Entity;
@@ -23,7 +23,6 @@ public class EntityRenderersClientMixin {
 
     @Inject(method = "<clinit>", at = @At("TAIL"))
     private static void cobe$registerEntityRenderers(CallbackInfo ci) {
-        AsLib.EVENT_BUS.register(new RegisterEntityRendererListener());
         RegisterEntityRendererEvent event = new RegisterEntityRendererEvent();
 
         AsLib.EVENT_BUS.post(event);
@@ -32,7 +31,7 @@ public class EntityRenderersClientMixin {
     }
 
     @SuppressWarnings("unchecked")
-    private static <E extends Entity> void cobe$helperRegister(RegisterEntityRendererEvent.EntityRendererData data) {
+    private static <E extends Entity> void cobe$helperRegister(EntityRendererData data) {
         EntityType<E> type = (EntityType<E>) data.entityType();
         EntityRendererProvider<E> provider = (EntityRendererProvider<E>) data.entityRendererProvider();
 

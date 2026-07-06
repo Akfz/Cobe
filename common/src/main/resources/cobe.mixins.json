@@ -5,7 +5,7 @@
   "plugin": "n.paradox.aslib.mixin.plugin.AsLibMixinPlugin",
   "mixins": [
     "client.EntityRenderersClientMixin",
-    "BuiltInRegistriesMixin"
+    "client.MinecraftMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -33,6 +33,13 @@ subprojects {
         it.options.release = 17
     }
 
+    if (project.name != 'common') {
+        configurations {
+            embed
+            implementation.extendsFrom(embed)
+        }
+    }
+
     afterEvaluate {
         def finalJarName = "${rootProject.archives_base_name}-${project.name}-${project.version}.jar"
 
@@ -42,11 +49,6 @@ subprojects {
         }
 
         if (project.name != 'common') {
-            configurations {
-                embed
-                implementation.extendsFrom(embed)
-            }
-
             dependencies {
                 annotationProcessor aslibJar
             }
@@ -91,7 +93,6 @@ subprojects {
 
                 if (project.name == 'neoforge') {
                     exclude 'fabric.mod.json'
-                    exclude 'quilt.mod.json'
                 }
 
                 if (project.name == 'fabric') {
@@ -208,24 +209,41 @@ if (libsDir.exists() && libsDir.isDirectory()) {
 
 tasks.register('compileAll', Copy) {
     group = 'build'
-    description = 'Compile and copy from all subprojects JAR in main build/libs'
+    description = 'Cleans all projects, then compiles and copies JARs from common, fabric, and forge to build/libs'
 
     subprojects.each { subproject ->
-        if (subproject.name == 'fabric') {
-            dependsOn subproject.tasks.matching { it.name == 'remapJar' }
-        } else {
-            dependsOn subproject.tasks.matching { it.name == 'jar' }
+        if (subproject.name != 'bridge') {
+
+            def cleanTask = subproject.tasks.matching { it.name == 'clean' }
+
+            def buildTasks
+            if (subproject.name == 'fabric') {
+                buildTasks = subproject.tasks.matching { it.name == 'remapJar' }
+            } else if (subproject.name == 'forge') {
+                buildTasks = subproject.tasks.matching { it.name == 'jar' || it.name == 'devJar' }
+            } else {
+                buildTasks = subproject.tasks.matching { it.name == 'jar' }
+            }
+
+            dependsOn cleanTask
+            dependsOn buildTasks
+
+            buildTasks.configureEach { task ->
+                task.mustRunAfter(cleanTask)
+            }
         }
     }
 
     subprojects.each { subproject ->
-        if (subproject.name == 'common') {
-            from(subproject.layout.buildDirectory.dir("devlibs")) {
-                include "*.jar"
-            }
-        } else {
-            from(subproject.layout.buildDirectory.dir("libs")) {
-                include "*.jar"
+        if (subproject.name != 'bridge') {
+            if (subproject.name == 'common') {
+                from(subproject.layout.buildDirectory.dir("devlibs")) {
+                    include "*.jar"
+                }
+            } else {
+                from(subproject.layout.buildDirectory.dir("libs")) {
+                    include "*.jar"
+                }
             }
         }
     }

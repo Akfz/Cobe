@@ -1,13 +1,10 @@
 pluginManagement {
     repositories {
+        maven { url = 'https://maven.parchmentmc.org' }
         maven { url = 'https://maven.minecraftforge.net/' }
         maven { url = 'https://maven.fabricmc.net/' }
         mavenCentral()
         gradlePluginPortal()
-    }
-    plugins {
-        id 'net.minecraftforge.gradle' version "${forge_gradle_version}"
-        id 'fabric-loom' version "${fabric_loom_version}"
     }
 }
 
@@ -17,6 +14,7 @@ plugins {
 
 rootProject.name = 'Cobe'
 
+include 'bridge'
 include 'common'
 include 'fabric'
 include 'forge'

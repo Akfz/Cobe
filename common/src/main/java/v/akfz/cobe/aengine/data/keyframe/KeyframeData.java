@@ -8,9 +8,7 @@ import java.util.List;
 public record KeyframeData(
         Transform transform,
         InterpolationType interpolation,
+        Easing easing,
         @Nullable List<Float> bezierArgs
 ) {
-    public KeyframeData(Transform transform) {
-        this(transform, InterpolationType.LINEAR, null);
-    }
 }

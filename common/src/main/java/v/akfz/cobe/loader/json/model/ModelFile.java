@@ -1,4 +1,4 @@
-package v.akfz.cobe.json.model;
+package v.akfz.cobe.loader.json.model;
 
 import n.paradox.aslib.util.json.JsonFile;
 

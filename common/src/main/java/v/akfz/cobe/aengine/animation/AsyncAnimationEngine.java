@@ -74,9 +74,9 @@ public class AsyncAnimationEngine {
             if (elapsedTimeNs >= targetFrameTimeNs) {
                 lastTime = currentTime;
 
-                float deltaTimeMs = (float) elapsedTimeNs / 1_000_000f;
+                float deltaTimeSec = (float) elapsedTimeNs / 1_000_000_000f;
 
-                tickAllControllersAndWait(deltaTimeMs);
+                tickAllControllersAndWait(deltaTimeSec);
 
                 long tickEndTime = System.nanoTime();
                 long actualWorkTimeNs = tickEndTime - currentTime;
@@ -103,7 +103,7 @@ public class AsyncAnimationEngine {
         }
     }
 
-    private void tickAllControllersAndWait(float deltaTimeMs) {
+    private void tickAllControllersAndWait(float deltaTimeSec) {
         if (registry.isEmpty()) return;
 
         CountDownLatch latch = new CountDownLatch(registry.size());
@@ -115,7 +115,7 @@ public class AsyncAnimationEngine {
                         List<BoneRData> rootBones = animatedObject.getCache().getRootBones();
                         if (rootBones != null) {
                             AnimationController controller = animatedObject.getController();
-                            controller.update(deltaTimeMs, rootBones, animatedObject.getCache());
+                            controller.update(deltaTimeSec, rootBones, animatedObject.getCache());
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -128,7 +128,7 @@ public class AsyncAnimationEngine {
                     List<BoneRData> rootBones = animatedObject.getCache().getRootBones();
                     if (rootBones != null) {
                         AnimationController controller = animatedObject.getController();
-                        controller.update(deltaTimeMs, rootBones, animatedObject.getCache());
+                        controller.update(deltaTimeSec, rootBones, animatedObject.getCache());
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();

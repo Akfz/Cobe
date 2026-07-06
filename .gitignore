@@ -26,9 +26,6 @@ replay_pid*
 oldcode/.idea/
 .vscode/
 
-/common/src/main/java/n/paradox/cobe/test/**
-
-/libs
 .idea
 build/
 run/
