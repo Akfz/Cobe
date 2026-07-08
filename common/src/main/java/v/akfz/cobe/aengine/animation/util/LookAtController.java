@@ -3,6 +3,7 @@ package v.akfz.cobe.aengine.animation.util;
 import org.joml.Quaternionf;
 import v.akfz.cobe.aengine.data.bone.BoneTransform;
 
+//TODO CHECK + FIX
 public class LookAtController {
     private String boneName = null;
     private float yaw = 0f;

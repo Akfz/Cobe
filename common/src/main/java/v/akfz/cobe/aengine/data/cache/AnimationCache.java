@@ -25,6 +25,9 @@ public class AnimationCache {
     public static Map<String, Animation> getFromCacheAnimation() {
         return new HashMap<>(CACHED_ANIMATIONS);
     }
+    public static void cleanCacheAnimations() {
+        CACHED_ANIMATIONS.clear();
+    }
 
     private static final Map<String, List<AnimationEvent>> ANIMATION_EVENT = new HashMap<>(); // ивенты для анимаций, считай регистрация
     public static void addAnimationEvent(AnimationEvent event, String animationName) {

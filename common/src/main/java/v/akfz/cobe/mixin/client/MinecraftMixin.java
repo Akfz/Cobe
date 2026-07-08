@@ -13,8 +13,8 @@ public class MinecraftMixin {
     @Inject(method = "tick", at = @At("HEAD"))
     public void cobe$tick(CallbackInfo ci) {
         if (Minecraft.getInstance().screen instanceof TitleScreen) {
-            if (!AnimationCache.CACHED_ANIMATIONS.isEmpty()) {
-                AnimationCache.CACHED_ANIMATIONS.clear();
+            if (!AnimationCache.getFromCacheAnimation().isEmpty()) {
+                AnimationCache.cleanCacheAnimations();
             }
         }
     }
