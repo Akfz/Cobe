@@ -70,7 +70,7 @@ public class ConfigPack {
         if (json == null || rpDir == null) return;
         ConfigPackData data = GsonHelper.read(json, ConfigPackData.class);
         if (data == null) return;
-        SimpleFileResourcePack resourcePack = new SimpleFileResourcePack(data.name, rpDir, data.id);
+        ConfigResourcePack resourcePack = new ConfigResourcePack(data.name, rpDir, data.id);
         String disc = String.join("\n", data.description);
         AddResourcePack.addFRP(Minecraft.getInstance().getResourcePackRepository(), resourcePack, Component.literal(disc),
                 data.alwaysEnabled, data.position, data.pinned, PackSource.BUILT_IN);

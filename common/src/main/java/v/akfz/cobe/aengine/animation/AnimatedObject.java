@@ -1,6 +1,7 @@
 package v.akfz.cobe.aengine.animation;
 
 import v.akfz.cobe.aengine.animation.calc.AnimationController;
+import v.akfz.cobe.aengine.animation.calc.AsyncAnimationEngine;
 import v.akfz.cobe.aengine.data.cache.AnimatedObjectCache;
 
 // Главный в этой компании 😎
@@ -13,5 +14,9 @@ public interface AnimatedObject {
 
     default boolean shouldPlayAnimationsWhileGamePaused() {
         return false;
+    }
+
+    default void fastInit() {
+        AsyncAnimationEngine.getInstance().register(this.getStrId(), this);
     }
 }

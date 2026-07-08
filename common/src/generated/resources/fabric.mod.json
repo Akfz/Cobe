@@ -11,7 +11,7 @@
     "Akaize",
     "null;Paradox"
   ],
-  "entrypoints": { "main": [ "n.paradox.cobe.CobeMod_fabric" ] },
+  "entrypoints": { "main": [ "v.akfz.cobe.CobeMod_fabric" ] },
   "mixins": [ "cobe.mixins.json" ],
   "depends": {
     "fabricloader": ">=0.15.11",

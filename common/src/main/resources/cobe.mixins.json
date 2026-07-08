@@ -4,8 +4,8 @@
   "compatibilityLevel": "JAVA_17",
   "plugin": "v.akfz.aslib.mixin.plugin.AsLibMixinPlugin",
   "mixins": [
-    "v.akfz.cobe.client.EntityRenderersClientMixin",
-    "v.akfz.cobe.client.MinecraftMixin"
+    "client.EntityRenderersClientMixin",
+    "client.MinecraftMixin"
   ],
   "injectors": {
     "defaultRequire": 1

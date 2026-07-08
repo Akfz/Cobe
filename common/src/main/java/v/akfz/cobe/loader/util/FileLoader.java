@@ -1,6 +1,7 @@
 package v.akfz.cobe.loader.util;
 
 import com.google.gson.stream.JsonReader;
+import net.minecraft.client.Minecraft;
 import v.akfz.aslib.util.json.GsonHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -18,7 +19,7 @@ import java.nio.file.Path;
 public final class FileLoader {
     private FileLoader(){}
     public static void loadAnimationFile(ResourceLocation location) {
-        AnimationsData data = GsonHelper.read(location, AnimationsData.class);
+        AnimationsData data = GsonHelper.read(location, AnimationsData.class, Minecraft.getInstance().getResourceManager());
         if (data == null) {
             System.out.println("Failed to load animation from RL path : " + location.toString());
             return;
@@ -36,9 +37,9 @@ public final class FileLoader {
     }
 
     public static void loadModelFile(ResourceLocation location) {
-        ModelData data = GsonHelper.read(location, ModelData.class);
+        ModelData data = GsonHelper.read(location, ModelData.class, Minecraft.getInstance().getResourceManager());
         if (data == null) {
-            System.out.println("Failed to load model from path : " + location.toString());
+            System.out.println("Failed to load model from RL path : " + location.toString());
             return;
         }
         ModelCache.addCacheModel(data,data.nameOfModel);

@@ -12,7 +12,7 @@ import java.util.List;
 public class RegisterEntityRendererEvent extends Event {
     private final List<EntityRendererData> registrars = new ArrayList<>();
 
-    public void register(EntityType<? extends Entity> entityType, EntityRendererProvider<? extends Entity> entityRendererProvider) {
+    public <T extends Entity> void register(EntityType<T> entityType, EntityRendererProvider<T> entityRendererProvider) {
         this.registrars.add(new EntityRendererData(entityType, entityRendererProvider));
     }
 

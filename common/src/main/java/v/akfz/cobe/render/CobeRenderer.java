@@ -22,17 +22,15 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.jetbrains.annotations.Nullable;
-import v.akfz.cobe.loader.util.FileLoader;
 
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-//к любому рендеру просто instance CobeRenderer прописывать и все заработает
+//к любому рендеру просто implements CobeRenderer прописывать и все заработает
 public interface CobeRenderer<T extends AnimatedObject> {
 
     ResourceLocation NULL_TEXTURE = new ResourceLocation("cobe", "textures/notexture.png");
@@ -40,7 +38,6 @@ public interface CobeRenderer<T extends AnimatedObject> {
     Map<String, ResourceLocation> DYNAMIC_CACHE = new ConcurrentHashMap<>();
 
     String getNameOfModel();
-    T getAnimatedObject();
 
     @Nullable
     default ModelData getModelData(String name) {
@@ -68,7 +65,6 @@ public interface CobeRenderer<T extends AnimatedObject> {
                     ResourceLocation dynamicRl = new ResourceLocation("cobe_dynamic", uniqueId);
 
                     Minecraft.getInstance().getTextureManager().register(dynamicRl, dynamicTexture);
-                    System.out.println("[Cobe] Successfully registered external texture: " + dynamicRl + " from " + path.toAbsolutePath());
                     return dynamicRl;
                 }
             } catch (Exception e) {
@@ -79,24 +75,60 @@ public interface CobeRenderer<T extends AnimatedObject> {
         });
     }
 
+    default ResourceLocation resolveTexture(BoneTexture bt) {
+        if (bt.locIsRl()) {
+            ResourceLocation rl = bt.getRl();
+            if (rl != null) {
+                boolean resourceExists = false;
+                try {
+                    resourceExists = Minecraft.getInstance().getResourceManager().getResource(rl).isPresent();
+                } catch (Exception ignored) {}
+
+                if (resourceExists) {
+                    return rl;
+                }
+
+                Path path = Minecraft.getInstance().gameDirectory.toPath().resolve(rl.getPath());
+
+                if (!Files.exists(path)) {
+                    Path fallback = Path.of(rl.getPath());
+                    if (Files.exists(fallback)) {
+                        path = fallback;
+                    }
+                }
+                return getOrCreateDynamicTexture(path);
+            }
+        } else {
+            Path path = bt.getPath();
+
+            if (path != null && !Files.exists(path)) {
+                try {
+                    String relativeLoc = path.toString().substring(Minecraft.getInstance().gameDirectory.toPath().toString().length() + 1);
+                    Path fallback = Path.of(relativeLoc);
+                    if (Files.exists(fallback)) {
+                        path = fallback;
+                    }
+                } catch (Exception ignored) {}
+            }
+            return getOrCreateDynamicTexture(path);
+        }
+        return NULL_TEXTURE;
+    }
+
     default @Nullable ResourceLocation getBoneTextureOverride(String boneName) {
         ModelData model = getModelData(getNameOfModel());
         if (model != null && model.texturePaths != null) {
             for (BoneTexture bt : model.texturePaths) {
                 if (bt.getBone() != null && bt.getBone().equals(boneName)) {
-                    if (bt.locIsRl()) {
-                        return bt.getRl() != null ? bt.getRl() : NULL_TEXTURE;
-                    } else {
-                        return getOrCreateDynamicTexture(bt.getPath());
-                    }
+                    return resolveTexture(bt);
                 }
             }
         }
         return null;
     }
 
-    default RenderType getRenderType() {
-        return RenderType.cutout();
+    default RenderType getRenderTypeForBone(String bone) {
+        return RenderType.entityCutoutNoCull(getBoneTextureOverride(bone));
     }
 
     default void defaultRender(PoseStack poseStack, T animated, MultiBufferSource bufferSource, @Nullable RenderType renderType, @Nullable VertexConsumer buffer,
@@ -111,10 +143,6 @@ public interface CobeRenderer<T extends AnimatedObject> {
         float blue = 1.0f;
         float alpha = 1.0f;
         int packedOverlay = OverlayTexture.NO_OVERLAY;
-
-        if (renderType == null) {
-            renderType = getRenderType();
-        }
 
         Matrix4f entityWorldMatrix = new Matrix4f(poseStack.last().pose());
 
@@ -156,8 +184,9 @@ public interface CobeRenderer<T extends AnimatedObject> {
         ResourceLocation boneTextureOverride = getBoneTextureOverride(bone.name());
 
         if (boneTextureOverride != null) {
-            activeBuffer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(boneTextureOverride));
+            activeBuffer = bufferSource.getBuffer(getRenderTypeForBone(bone.name()));
         } else if (activeBuffer == null) {
+            if (defaultRenderType == null) defaultRenderType = RenderType.entityCutoutNoCull(NULL_TEXTURE);
             activeBuffer = bufferSource.getBuffer(defaultRenderType);
         }
 
@@ -169,7 +198,7 @@ public interface CobeRenderer<T extends AnimatedObject> {
 
         if (bone.children() != null) {
             for (BoneRData child : bone.children()) {
-                renderBoneRecursively(poseStack, entityWorldMatrix, animated, child, bufferSource, defaultRenderType, defaultBuffer, packedLight, packedOverlay, red, green, blue, alpha);
+                renderBoneRecursively(poseStack, entityWorldMatrix, animated, child, bufferSource, defaultRenderType, activeBuffer, packedLight, packedOverlay, red, green, blue, alpha);
             }
         }
 
