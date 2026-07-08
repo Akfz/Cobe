@@ -1,4 +1,4 @@
-package v.akfz.cobe.aengine.animation;
+package v.akfz.cobe.aengine.animation.util;
 
 import org.joml.Quaternionf;
 import v.akfz.cobe.aengine.data.bone.BoneTransform;

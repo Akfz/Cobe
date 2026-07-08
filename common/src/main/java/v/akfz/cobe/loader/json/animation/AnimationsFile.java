@@ -1,6 +1,6 @@
 package v.akfz.cobe.loader.json.animation;
 
-import n.paradox.aslib.util.json.JsonFile;
+import v.akfz.aslib.util.json.JsonFile;
 
 import java.nio.file.Path;
 

@@ -1,9 +1,9 @@
 package v.akfz.cobe.loader.resourcepack.configpack;
 
-import n.paradox.aslib.resourcepack.AddResourcePack;
-import n.paradox.aslib.resourcepack.SimpleFileResourcePack;
-import n.paradox.aslib.util.json.GsonHelper;
-import n.paradox.aslib.util.json.JsonFile;
+import v.akfz.aslib.resourcepack.AddResourcePack;
+import v.akfz.aslib.resourcepack.SimpleFileResourcePack;
+import v.akfz.aslib.util.json.GsonHelper;
+import v.akfz.aslib.util.json.JsonFile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.repository.PackSource;

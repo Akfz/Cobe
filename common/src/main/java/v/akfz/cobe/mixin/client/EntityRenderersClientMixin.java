@@ -1,8 +1,8 @@
-package n.paradox.cobe.mixin.client;
+package v.akfz.cobe.mixin.client;
 
-import n.paradox.aslib.AsLib;
-import n.paradox.cobe.event.RegisterEntityRendererEvent;
-import n.paradox.cobe.util.EntityRendererData;
+import v.akfz.aslib.AsLib;
+import v.akfz.cobe.event.RegisterEntityRendererEvent;
+import v.akfz.cobe.util.EntityRendererData;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.world.entity.Entity;

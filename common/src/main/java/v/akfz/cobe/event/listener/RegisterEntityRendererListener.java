@@ -1,8 +1,8 @@
-package n.paradox.cobe.event.listener;
+package v.akfz.cobe.event.listener;
 
-import n.paradox.aslib.event.api.Listener;
-import n.paradox.aslib.event.api.Subscribe;
-import n.paradox.cobe.event.RegisterEntityRendererEvent;
+import v.akfz.aslib.event.api.Listener;
+import v.akfz.aslib.event.api.Subscribe;
+import v.akfz.cobe.event.RegisterEntityRendererEvent;
 
 // пример
 public class RegisterEntityRendererListener implements Listener {

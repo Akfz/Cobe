@@ -1,11 +1,12 @@
 package v.akfz.cobe.loader.util;
 
 import com.google.gson.stream.JsonReader;
-import n.paradox.aslib.util.json.GsonHelper;
+import v.akfz.aslib.util.json.GsonHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.jetbrains.annotations.Nullable;
 import v.akfz.cobe.aengine.data.cache.AnimationCache;
+import v.akfz.cobe.aengine.data.cache.ModelCache;
 import v.akfz.cobe.loader.json.animation.AnimationsData;
 import v.akfz.cobe.loader.json.model.ModelData;
 
@@ -22,7 +23,7 @@ public final class FileLoader {
             System.out.println("Failed to load animation from RL path : " + location.toString());
             return;
         }
-        AnimationCache.CACHE_ANIMATIONS.put(location.toString(),data);
+        AnimationCache.addCacheAnimationData(data,location.toString());
     }
 
     public static void loadAnimationFile(Path path) {
@@ -31,17 +32,25 @@ public final class FileLoader {
             System.out.println("Failed to load animation from path : " + path.toString());
             return;
         }
-        AnimationCache.CACHE_ANIMATIONS.put(path.toString(),data);
+        AnimationCache.addCacheAnimationData(data,path.toString());
     }
 
-    @Nullable
-    public static ModelData loadModelFile(ResourceLocation location) {
-        return GsonHelper.read(location, ModelData.class);
+    public static void loadModelFile(ResourceLocation location) {
+        ModelData data = GsonHelper.read(location, ModelData.class);
+        if (data == null) {
+            System.out.println("Failed to load model from path : " + location.toString());
+            return;
+        }
+        ModelCache.addCacheModel(data,data.nameOfModel);
     }
 
-    @Nullable
-    public static ModelData loadModelFile(Path path) {
-        return GsonHelper.read(path, ModelData.class);
+    public static void loadModelFile(Path path) {
+        ModelData data = GsonHelper.read(path, ModelData.class);
+        if (data == null) {
+            System.out.println("Failed to load model from path : " + path.toString());
+            return;
+        }
+        ModelCache.addCacheModel(data,data.nameOfModel);
     }
 
     public enum FileType {

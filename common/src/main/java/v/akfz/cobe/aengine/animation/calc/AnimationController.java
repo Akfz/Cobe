@@ -1,8 +1,10 @@
-package v.akfz.cobe.aengine.animation;
+package v.akfz.cobe.aengine.animation.calc;
 
 import net.minecraft.client.Minecraft;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import v.akfz.cobe.aengine.animation.AnimatedObject;
+import v.akfz.cobe.aengine.animation.util.LookAtController;
 import v.akfz.cobe.aengine.data.bone.BoneAData;
 import v.akfz.cobe.aengine.data.bone.BoneTransform;
 import v.akfz.cobe.aengine.data.cache.AnimatedObjectCache;
@@ -18,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import v.akfz.cobe.loader.json.animation.AnimationsData;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class AnimationController {
@@ -26,7 +29,7 @@ public class AnimationController {
         this.object = animatedObject;
     }
 
-    private final Map<String, AnimationTrack> activeTracks = new HashMap<>();
+    private final Map<String, AnimationTrack> activeTracks = new ConcurrentHashMap<>();
     private final Queue<QueueEntry> animationInQueue = new ConcurrentLinkedQueue<>();
 
     private final LookAtController lookAtController = new LookAtController();
@@ -49,14 +52,15 @@ public class AnimationController {
     }
 
     public void play(String animationName, boolean loop, boolean hold, float transitionTimeSec, int layer, @Nullable Set<String> boneMask) {
-        Animation anim = AnimationCache.CACHED_ANIMATIONS.get(animationName);
+        Map<String, Animation> cache = AnimationCache.getFromCacheAnimation();
+        Animation anim = cache.get(animationName);
 
         if (anim == null) {
-            for (AnimationsData adata : AnimationCache.CACHE_ANIMATIONS.values()) {
+            for (AnimationsData adata : AnimationCache.getFromCacheAnimationData().values()) {
                 for (Animation animation : adata.animations) {
                     if (animation.name().equals(animationName)) {
                         anim = animation;
-                        AnimationCache.CACHED_ANIMATIONS.put(animationName, animation);
+                        cache.put(animationName, animation);
                         break;
                     }
                 }

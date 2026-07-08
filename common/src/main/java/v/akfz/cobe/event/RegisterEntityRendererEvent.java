@@ -1,7 +1,7 @@
-package n.paradox.cobe.event;
+package v.akfz.cobe.event;
 
-import n.paradox.aslib.event.api.Event;
-import n.paradox.cobe.util.EntityRendererData;
+import v.akfz.aslib.event.api.Event;
+import v.akfz.cobe.util.EntityRendererData;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;

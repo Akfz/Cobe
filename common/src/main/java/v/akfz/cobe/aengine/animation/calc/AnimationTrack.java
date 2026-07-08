@@ -1,8 +1,11 @@
-package v.akfz.cobe.aengine.animation;
+package v.akfz.cobe.aengine.animation.calc;
 
+import v.akfz.cobe.aengine.animation.event.AnimationEvent;
+import v.akfz.cobe.aengine.data.cache.AnimationCache;
 import v.akfz.cobe.loader.json.animation.Animation;
 import org.jetbrains.annotations.Nullable;
-import java.util.Set;
+
+import java.util.*;
 
 public class AnimationTrack {
     private final Animation animation;
@@ -18,13 +21,23 @@ public class AnimationTrack {
 
     private boolean holdOnLastFrame = false;
 
+    private final TreeMap<Long, List<AnimationEvent>> eventList = new TreeMap<>();
+
     public AnimationTrack(Animation animation) {
         this.animation = animation;
+
+        List<AnimationEvent> events = AnimationCache.getAnimationEvents(animation.name());
+        if (events != null && !events.isEmpty()) {
+            for (AnimationEvent event : events) {
+                eventList.computeIfAbsent(event.time(), k -> new ArrayList<>()).add(event);
+            }
+        }
     }
 
     public void update(float deltaTimeSec) {
         if (isPaused || isStopped) return;
 
+        float lastTimeSec = this.currentTime;
         this.currentTime += deltaTimeSec * animation.speed();
 
         if (fadeSpeed != 0.0f) {
@@ -39,16 +52,34 @@ public class AnimationTrack {
             }
         }
 
-        float lengthInSec = animation.length() / 1000f;
+        long lengthInMs = animation.length();
+        float lengthInSec = lengthInMs / 1000f;
 
         if (this.currentTime >= lengthInSec) {
             if (loop) {
+                dispatchEventsInRange((long) (lastTimeSec * 1000f), lengthInMs);
                 this.currentTime = this.currentTime % lengthInSec;
+                dispatchEventsInRange(0L, (long) (this.currentTime * 1000f));
             } else if (holdOnLastFrame) {
+                dispatchEventsInRange((long) (lastTimeSec * 1000f), lengthInMs);
                 this.currentTime = lengthInSec;
             } else {
+                dispatchEventsInRange((long) (lastTimeSec * 1000f), lengthInMs);
                 this.isStopped = true;
                 this.currentTime = lengthInSec;
+            }
+        } else {
+            dispatchEventsInRange((long) (lastTimeSec * 1000f), (long) (this.currentTime * 1000f));
+        }
+    }
+
+    private void dispatchEventsInRange(long startMs, long endMs) {
+        if (eventList.isEmpty() || startMs >= endMs) return;
+
+        SortedMap<Long, List<AnimationEvent>> triggered = eventList.subMap(startMs + 1, endMs + 1);
+        for (List<AnimationEvent> events : triggered.values()) {
+            for (AnimationEvent event : events) {
+                event.run();
             }
         }
     }

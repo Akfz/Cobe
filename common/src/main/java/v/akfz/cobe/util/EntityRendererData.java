@@ -1,4 +1,4 @@
-package n.paradox.cobe.util;
+package v.akfz.cobe.util;
 
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.Entity;

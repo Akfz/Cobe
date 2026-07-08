@@ -1,11 +1,11 @@
 {
   "required": true,
-  "package": "n.paradox.cobe.mixin",
+  "package": "v.akfz.cobe.mixin",
   "compatibilityLevel": "JAVA_17",
-  "plugin": "n.paradox.aslib.mixin.plugin.AsLibMixinPlugin",
+  "plugin": "v.akfz.aslib.mixin.plugin.AsLibMixinPlugin",
   "mixins": [
-    "client.EntityRenderersClientMixin",
-    "client.MinecraftMixin"
+    "v.akfz.cobe.client.EntityRenderersClientMixin",
+    "v.akfz.cobe.client.MinecraftMixin"
   ],
   "injectors": {
     "defaultRequire": 1

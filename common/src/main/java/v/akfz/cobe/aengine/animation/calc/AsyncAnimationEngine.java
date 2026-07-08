@@ -1,8 +1,10 @@
-package v.akfz.cobe.aengine.animation;
+package v.akfz.cobe.aengine.animation.calc;
 
+import v.akfz.cobe.aengine.animation.AnimatedObject;
 import v.akfz.cobe.aengine.data.bone.BoneRData;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -106,9 +108,10 @@ public class AsyncAnimationEngine {
     private void tickAllControllersAndWait(float deltaTimeSec) {
         if (registry.isEmpty()) return;
 
-        CountDownLatch latch = new CountDownLatch(registry.size());
+        List<AnimatedObject> activeObjects = new ArrayList<>(registry.values());
+        CountDownLatch latch = new CountDownLatch(activeObjects.size());
 
-        for (AnimatedObject animatedObject : registry.values()) {
+        for (AnimatedObject animatedObject : activeObjects) {
             try {
                 workerPool.submit(() -> {
                     try {

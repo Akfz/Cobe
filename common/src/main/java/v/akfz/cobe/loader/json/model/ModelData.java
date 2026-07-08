@@ -1,6 +1,6 @@
 package v.akfz.cobe.loader.json.model;
 
-import n.paradox.aslib.util.json.JsonData;
+import v.akfz.aslib.util.json.JsonData;
 import v.akfz.cobe.aengine.data.bone.BoneRData;
 
 import java.util.List;

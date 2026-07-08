@@ -1,5 +1,6 @@
 package v.akfz.cobe.aengine.animation;
 
+import v.akfz.cobe.aengine.animation.calc.AnimationController;
 import v.akfz.cobe.aengine.data.cache.AnimatedObjectCache;
 
 // Главный в этой компании 😎

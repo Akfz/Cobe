@@ -1,4 +1,4 @@
-package n.paradox.cobe.mixin.client;
+package v.akfz.cobe.mixin.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;

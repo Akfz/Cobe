@@ -44,7 +44,7 @@ public interface CobeRenderer<T extends AnimatedObject> {
 
     @Nullable
     default ModelData getModelData(String name) {
-        return ModelCache.CACHED_MODEL.get(name);
+        return ModelCache.getFromCache(name);
     }
 
     static ResourceLocation getOrCreateDynamicTexture(Path path) {

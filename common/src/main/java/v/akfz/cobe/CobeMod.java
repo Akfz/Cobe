@@ -1,12 +1,9 @@
-package n.paradox.cobe;
+package v.akfz.cobe;
 
-import n.paradox.aslib.initializer.generator.GenerateInitializer;
-import n.paradox.aslib.initializer.generator.InitializerClass;
-import n.paradox.aslib.initializer.generator.LoaderType;
-import n.paradox.aslib.resourcepack.AsLibResourceResourceReloaderHelper;
-import v.akfz.cobe.aengine.data.cache.AnimationCache;
-import v.akfz.cobe.aengine.data.cache.ModelCache;
-import v.akfz.cobe.loader.json.animation.Animation;
+import v.akfz.aslib.initializer.generator.GenerateInitializer;
+import v.akfz.aslib.initializer.generator.InitializerClass;
+import v.akfz.aslib.initializer.generator.LoaderType;
+import v.akfz.aslib.resourcepack.AsLibResourceResourceReloaderHelper;
 import v.akfz.cobe.loader.resourcepack.configpack.ConfigPack;
 import v.akfz.cobe.loader.util.FileLoader;
 
@@ -14,7 +11,7 @@ import v.akfz.cobe.loader.util.FileLoader;
 public class CobeMod implements InitializerClass {
     @Override
     public void init() {
-        AsLibResourceResourceReloaderHelper.register("loadAnimations", (manager) -> {
+        AsLibResourceResourceReloaderHelper.register("loadCobe", (manager) -> {
             var allResources = manager.listResources("",
                     location -> location.getPath().endsWith(".json")
             );
