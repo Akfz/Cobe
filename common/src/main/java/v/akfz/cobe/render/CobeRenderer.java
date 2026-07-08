@@ -77,27 +77,7 @@ public interface CobeRenderer<T extends AnimatedObject> {
 
     default ResourceLocation resolveTexture(BoneTexture bt) {
         if (bt.locIsRl()) {
-            ResourceLocation rl = bt.getRl();
-            if (rl != null) {
-                boolean resourceExists = false;
-                try {
-                    resourceExists = Minecraft.getInstance().getResourceManager().getResource(rl).isPresent();
-                } catch (Exception ignored) {}
-
-                if (resourceExists) {
-                    return rl;
-                }
-
-                Path path = Minecraft.getInstance().gameDirectory.toPath().resolve(rl.getPath());
-
-                if (!Files.exists(path)) {
-                    Path fallback = Path.of(rl.getPath());
-                    if (Files.exists(fallback)) {
-                        path = fallback;
-                    }
-                }
-                return getOrCreateDynamicTexture(path);
-            }
+            if (bt.getRl() != null) return bt.getRl();
         } else {
             Path path = bt.getPath();
 
