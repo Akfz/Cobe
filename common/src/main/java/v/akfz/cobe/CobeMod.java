@@ -11,6 +11,7 @@ import v.akfz.cobe.loader.util.FileLoader;
 public class CobeMod implements InitializerClass {
     @Override
     public void init() {
+
         AsLibResourceResourceReloaderHelper.register("loadCobe", (manager) -> {
             var allResources = manager.listResources("",
                     location -> location.getPath().endsWith(".json")
