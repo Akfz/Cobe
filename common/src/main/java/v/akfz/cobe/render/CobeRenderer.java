@@ -108,7 +108,20 @@ public interface CobeRenderer<T extends AnimatedObject> {
     }
 
     default RenderType getRenderTypeForBone(String bone) {
-        return RenderType.entityCutoutNoCull(getBoneTextureOverride(bone));
+        ModelData model = getModelData(getNameOfModel());
+        if (model != null) {
+            BoneRData bdata = model.bones.stream().filter(boneRData -> boneRData.name().equals(bone)).findAny().orElse(null);
+            if (bdata != null) {
+                ResourceLocation texture = getBoneTextureOverride(bone);
+                return switch (bdata.renderTypes()) {
+                    case SOLID -> RenderType.entitySolid(texture);
+                    case CUTOUT_NO_CULL -> RenderType.entityCutoutNoCull(texture);
+                    case CUTOUT -> RenderType.entityCutout(texture);
+                    case TRANSLUCENT -> RenderType.entityTranslucent(texture);
+                };
+            }
+        }
+        return RenderType.entityCutoutNoCull(NULL_TEXTURE);
     }
 
     default void defaultRender(PoseStack poseStack, T animated, MultiBufferSource bufferSource, @Nullable RenderType renderType, @Nullable VertexConsumer buffer,

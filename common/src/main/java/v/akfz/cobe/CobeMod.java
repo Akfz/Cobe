@@ -1,21 +1,18 @@
 package v.akfz.cobe;
 
-import v.akfz.aslib.AsLib;
 import v.akfz.aslib.initializer.generator.GenerateInitializer;
 import v.akfz.aslib.initializer.generator.InitializerClass;
 import v.akfz.aslib.initializer.generator.LoaderType;
+import v.akfz.aslib.resourcepack.configpack.ConfigPackRegistry;
 import v.akfz.aslib.util.GlobalUtils;
-import v.akfz.cobe.loader.resourcepack.configpack.ConfigPack;
-import v.akfz.cobe.test.TestEntityRenderRegister;
+import v.akfz.cobe.loader.resourcepack.configpack.CobeCFGPack;
 
 @GenerateInitializer(loader = LoaderType.Both, modId = "cobe")
 public class CobeMod implements InitializerClass {
     @Override
     public void init() {
         if (GlobalUtils.isClientSide()) {
-            AsLib.EVENT_BUS.register(new TestEntityRenderRegister());
-
-            ConfigPack.Init();
+            ConfigPackRegistry.register("cobe", (path, data) -> new CobeCFGPack(data.name, path, data.id));
         }
     }
 }

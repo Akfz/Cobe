@@ -5,9 +5,9 @@ import v.akfz.cobe.loader.util.FileLoader;
 
 import java.nio.file.Path;
 
-public class ConfigResourcePack extends SimpleFileResourcePack {
+public class CobeCFGPack extends SimpleFileResourcePack {
 
-    public ConfigResourcePack(String packName, Path root, String namespace) {
+    public CobeCFGPack(String packName, Path root, String namespace) {
         super(packName, root, namespace);
         this.initializeResources();
     }
