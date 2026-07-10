@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-//к любому рендеру просто implements CobeRenderer прописывать и все заработает
 public interface CobeRenderer<T extends AnimatedObject> {
 
     ResourceLocation NULL_TEXTURE = new ResourceLocation("cobe", "textures/notexture.png");
@@ -38,6 +37,20 @@ public interface CobeRenderer<T extends AnimatedObject> {
     Map<String, ResourceLocation> DYNAMIC_CACHE = new ConcurrentHashMap<>();
 
     String getNameOfModel();
+
+    default boolean shouldForceFullUV(String boneName) {
+        return false;
+    }
+
+    default float[] getFullStretchUV(int stepIdx) {
+        return switch (stepIdx) {
+            case 0 -> new float[]{0.0F, 0.0F};
+            case 1 -> new float[]{1.0F, 0.0F};
+            case 2 -> new float[]{1.0F, 1.0F};
+            case 3 -> new float[]{0.0F, 1.0F};
+            default -> new float[]{0.0F, 0.0F};
+        };
+    }
 
     @Nullable
     default ModelData getModelData(String name) {
@@ -185,7 +198,7 @@ public interface CobeRenderer<T extends AnimatedObject> {
 
         if (bone.meshes() != null) {
             for (MeshRData mesh : bone.meshes()) {
-                renderMesh(poseStack, mesh, activeBuffer, packedLight, packedOverlay, red, green, blue, alpha, animated, entityWorldMatrix);
+                renderMesh(poseStack, mesh, activeBuffer, packedLight, packedOverlay, red, green, blue, alpha, animated, entityWorldMatrix, bone.name());
             }
         }
 
@@ -198,8 +211,8 @@ public interface CobeRenderer<T extends AnimatedObject> {
         poseStack.popPose();
     }
 
-    private void renderMesh(PoseStack poseStack, MeshRData mesh, VertexConsumer buffer,
-                            int packedLight, int packedOverlay, float red, float green, float blue, float alpha, T animated, Matrix4f entityWorldMatrix) {
+    default void renderMesh(PoseStack poseStack, MeshRData mesh, VertexConsumer buffer,
+                            int packedLight, int packedOverlay, float red, float green, float blue, float alpha, T animated, Matrix4f entityWorldMatrix, String boneName) {
         Matrix4f poseMatrix = poseStack.last().pose();
         Matrix3f normalMatrix = poseStack.last().normal();
 
@@ -252,11 +265,19 @@ public interface CobeRenderer<T extends AnimatedObject> {
 
             if (vertexCount == 4) {
                 int[] quadIndices = {0, 3, 2, 1};
+                int stepIdx = 0;
                 for (int step : quadIndices) {
                     int vertexIndex = vertexIndices[step];
                     int uvIndex = uvIndices[step];
                     float[] vertexPos = mesh.vertices().get(vertexIndex);
-                    float[] uv = mesh.uvs().get(uvIndex);
+
+                    float[] uv;
+                    if (shouldForceFullUV(boneName)) {
+                        uv = getFullStretchUV(stepIdx);
+                    } else {
+                        uv = mesh.uvs().get(uvIndex);
+                    }
+                    stepIdx++;
 
                     Vector4f skinnedV = getSkinnedVertex(vertexPos, vertexIndex, mesh, cache);
                     Vector4f worldPos = new Vector4f(skinnedV.x(), skinnedV.y(), skinnedV.z(), 1.0f);
@@ -296,7 +317,7 @@ public interface CobeRenderer<T extends AnimatedObject> {
         }
     }
 
-    private Vector4f getSkinnedVertex(float[] restPos, int vertexIndex, MeshRData mesh, @Nullable AnimatedObjectCache cache) {
+    default Vector4f getSkinnedVertex(float[] restPos, int vertexIndex, MeshRData mesh, @Nullable AnimatedObjectCache cache) {
         if (!mesh.isSkinned() || cache == null) {
             return new Vector4f(restPos[0], restPos[1], restPos[2], 1.0f);
         }

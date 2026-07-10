@@ -14,6 +14,11 @@ buildscript {
 allprojects {
     apply plugin: 'java'
 
+    repositories {
+        mavenCentral()
+        maven { url = 'https://oss.sonatype.org/content/repositories/releases/' }
+    }
+
     java {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -33,7 +38,7 @@ subprojects {
         it.options.release = 17
     }
 
-    if (project.name != 'common') {
+    if (project.name != 'common' && project.name != 'bridge') {
         configurations {
             embed
             implementation.extendsFrom(embed)
@@ -42,20 +47,47 @@ subprojects {
 
     afterEvaluate {
         def finalJarName = "${rootProject.archives_base_name}-${project.name}-${project.version}.jar"
-
         def aslibJar = fileTree(dir: 'libs', include: 'aslib-common-*.jar')
+
+        def javacvVersion = "1.5.10"
+        def opencvVersion = "4.9.0-${javacvVersion}"
+        def ffmpegVersion = "6.1.1-${javacvVersion}"
+
+        def targetPlatforms = [
+                "windows-x86_64",
+                "linux-x86_64",
+                "linux-arm64",
+                "macosx-x86_64",
+                "macosx-arm64"
+        ]
+
         dependencies {
             implementation aslibJar
+            implementation "org.bytedeco:javacv:${javacvVersion}"
+            implementation "org.bytedeco:opencv:${opencvVersion}"
+
+            targetPlatforms.each { platform ->
+                implementation "org.bytedeco:opencv:${opencvVersion}:${platform}"
+                implementation "org.bytedeco:ffmpeg:${ffmpegVersion}:${platform}"
+            }
         }
 
-        if (project.name != 'common') {
+        if (project.name != 'common' && project.name != 'bridge') {
             dependencies {
                 annotationProcessor aslibJar
+
+                embed "org.bytedeco:javacv:${javacvVersion}"
+                embed "org.bytedeco:opencv:${opencvVersion}"
+                targetPlatforms.each { platform ->
+                    embed "org.bytedeco:opencv:${opencvVersion}:${platform}"
+                    embed "org.bytedeco:ffmpeg:${ffmpegVersion}:${platform}"
+                }
             }
 
             if (project.name == 'fabric') {
                 tasks.named('remapJar') { task ->
                     task.archiveFileName = finalJarName
+                    task.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
                     task.from {
                         configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
                     }
@@ -109,7 +141,7 @@ subprojects {
     }
 
     tasks.withType(Jar).configureEach {
-        def targetAnnotation = "Ln/paradox/aslib/annotation/DontCompile;"
+        def targetAnnotation = "Lv/akfz/aslib/annotation/DontCompile;"
 
         eachFile { fileCopyDetails ->
             if (fileCopyDetails.name.endsWith('.class')) {
