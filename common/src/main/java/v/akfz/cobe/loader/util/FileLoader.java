@@ -36,6 +36,24 @@ public final class FileLoader {
         AnimationCache.addCacheAnimationData(data,path.toString());
     }
 
+    public static void loadAnimationFile(ResourceLocation location, ResourceManager manager) {
+        AnimationsData data = (AnimationsData) GsonHelper.read(location, AnimationsData.class, manager);
+        if (data == null) {
+            System.out.println("Failed to load animation from RL path : " + location.toString());
+        } else {
+            AnimationCache.addCacheAnimationData(data, location.toString());
+        }
+    }
+
+    public static void loadModelFile(ResourceLocation location, ResourceManager manager) {
+        ModelData data = (ModelData) GsonHelper.read(location, ModelData.class, manager);
+        if (data == null) {
+            System.out.println("Failed to load model from RL path : " + location.toString());
+        } else {
+            ModelCache.addCacheModel(data, data.nameOfModel);
+        }
+    }
+
     public static void loadModelFile(ResourceLocation location) {
         ModelData data = GsonHelper.read(location, ModelData.class, Minecraft.getInstance().getResourceManager());
         if (data == null) {

@@ -7,9 +7,10 @@ modId="cobe"
 version="1"
 displayName="Cobe"
 logoFile="icon.png"
-authors="Akaize, null;Paradox"
+authors="Akaize"
 description="""
-geckolib the best!"""
+geckolib the best! 
+ built-in : javacv,opencv,ffmpeg"""
 
 [[dependencies.cobe]]
     modId="minecraft"

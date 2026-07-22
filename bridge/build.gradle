@@ -1,7 +1,4 @@
-plugins {
-    id 'java'
-}
-
+boolean exclude = true //мне лень делать нормально
 tasks.register('copyCommon') {
     group = 'build'
     description = 'Copies all code and resources from :common to :bridge/build/bridge'
@@ -35,6 +32,7 @@ tasks.register('copyCommon') {
                 from genJava
             }
             into destJava
+            if (exclude) exclude '**/test/**'
         }
 
         copy {
@@ -43,6 +41,7 @@ tasks.register('copyCommon') {
                 from genRes
             }
             into destRes
+            if (exclude) exclude '**/test/**'
         }
     }
 }

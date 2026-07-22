@@ -3,13 +3,12 @@
   "id": "cobe",
   "version": "1",
   "name": "Cobe",
-  "description": "geckolib the best!",
+  "description": "geckolib the best! \n built-in : javacv,opencv,ffmpeg",
   "license": "MIT",
   "icon": "assets/cobe/icon.png",
   "environment": "*",
   "authors": [
-    "Akaize",
-    "null;Paradox"
+    "Akaize"
   ],
   "entrypoints": { "main": [ "v.akfz.cobe.CobeMod_fabric" ] },
   "mixins": [ "cobe.mixins.json" ],

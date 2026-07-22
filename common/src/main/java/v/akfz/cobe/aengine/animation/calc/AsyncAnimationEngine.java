@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -40,6 +41,12 @@ public class AsyncAnimationEngine {
         this.currentFps = fps;
         this.targetFrameTimeNs = 1_000_000_000L / fps;
     }
+
+    public boolean isRunning() {
+        return isRunning.get();
+    }
+
+    private final Set<String> processingObjects = ConcurrentHashMap.newKeySet();
 
     public synchronized void start() {
         if (isRunning.get()) return;
@@ -109,9 +116,19 @@ public class AsyncAnimationEngine {
         if (registry.isEmpty()) return;
 
         List<AnimatedObject> activeObjects = new ArrayList<>(registry.values());
-        CountDownLatch latch = new CountDownLatch(activeObjects.size());
+        List<AnimatedObject> objectsToTick = new ArrayList<>();
 
-        for (AnimatedObject animatedObject : activeObjects) {
+        for (AnimatedObject obj : activeObjects) {
+            if (processingObjects.add(obj.getStrId())) {
+                objectsToTick.add(obj);
+            }
+        }
+
+        if (objectsToTick.isEmpty()) return;
+        CountDownLatch latch = new CountDownLatch(objectsToTick.size());
+
+        for (AnimatedObject animatedObject : objectsToTick) {
+            String id = animatedObject.getStrId();
             try {
                 workerPool.submit(() -> {
                     try {
@@ -123,6 +140,7 @@ public class AsyncAnimationEngine {
                     } catch (Exception e) {
                         e.printStackTrace();
                     } finally {
+                        processingObjects.remove(id);
                         latch.countDown();
                     }
                 });
@@ -130,12 +148,12 @@ public class AsyncAnimationEngine {
                 try {
                     List<BoneRData> rootBones = animatedObject.getCache().getRootBones();
                     if (rootBones != null) {
-                        AnimationController controller = animatedObject.getController();
-                        controller.update(deltaTimeSec, rootBones, animatedObject.getCache());
+                        animatedObject.getController().update(deltaTimeSec, rootBones, animatedObject.getCache());
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 } finally {
+                    processingObjects.remove(id);
                     latch.countDown();
                 }
             }

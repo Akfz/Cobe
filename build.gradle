@@ -1,5 +1,9 @@
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.tree.ClassNode
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
 
 buildscript {
     repositories {
@@ -76,11 +80,20 @@ subprojects {
             dependencies {
                 annotationProcessor aslibJar
 
-                embed "org.bytedeco:javacv:${javacvVersion}"
-                embed "org.bytedeco:opencv:${opencvVersion}"
-                targetPlatforms.each { platform ->
-                    embed "org.bytedeco:opencv:${opencvVersion}:${platform}"
-                    embed "org.bytedeco:ffmpeg:${ffmpegVersion}:${platform}"
+                if (project.name == 'fabric') {
+                    include "org.bytedeco:javacv:${javacvVersion}"
+                    include "org.bytedeco:opencv:${opencvVersion}"
+                    targetPlatforms.each { platform ->
+                        include "org.bytedeco:opencv:${opencvVersion}:${platform}"
+                        include "org.bytedeco:ffmpeg:${ffmpegVersion}:${platform}"
+                    }
+                } else {
+                    embed "org.bytedeco:javacv:${javacvVersion}"
+                    embed "org.bytedeco:opencv:${opencvVersion}"
+                    targetPlatforms.each { platform ->
+                        embed "org.bytedeco:opencv:${opencvVersion}:${platform}"
+                        embed "org.bytedeco:ffmpeg:${ffmpegVersion}:${platform}"
+                    }
                 }
             }
 
@@ -88,9 +101,6 @@ subprojects {
                 tasks.named('remapJar') { task ->
                     task.archiveFileName = finalJarName
                     task.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-                    task.from {
-                        configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
-                    }
 
                     if (file("LICENSE").exists()) {
                         task.from("LICENSE") {
@@ -147,7 +157,7 @@ subprojects {
             if (fileCopyDetails.name.endsWith('.class')) {
                 def file = fileCopyDetails.file
 
-                if (file.exists()) {
+                if (file != null && file.exists()) {
                     def inputStream = file.newInputStream()
                     try {
                         def reader = new ClassReader(inputStream)
@@ -169,11 +179,6 @@ subprojects {
         }
     }
 }
-
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
-import org.gradle.api.services.BuildService
-import org.gradle.api.services.BuildServiceParameters
 
 abstract class ResourceCleanerService implements BuildService<BuildServiceParameters.None>, AutoCloseable {
     final List<File> filesToDelete = Collections.synchronizedList(new ArrayList<File>())

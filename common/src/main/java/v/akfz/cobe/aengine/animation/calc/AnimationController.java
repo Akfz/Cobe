@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import v.akfz.cobe.aengine.animation.AnimatedObject;
-import v.akfz.cobe.aengine.animation.util.LookAtController;
 import v.akfz.cobe.aengine.data.bone.BoneAData;
 import v.akfz.cobe.aengine.data.bone.BoneTransform;
 import v.akfz.cobe.aengine.data.cache.AnimatedObjectCache;
@@ -32,7 +31,7 @@ public class AnimationController {
     private final Map<String, AnimationTrack> activeTracks = new ConcurrentHashMap<>();
     private final Queue<QueueEntry> animationInQueue = new ConcurrentLinkedQueue<>();
 
-    private final LookAtController lookAtController = new LookAtController();
+    private final List<BoneModifier> boneModifiers = new ArrayList<>();
 
     public record QueueEntry(
             String animationName,
@@ -98,7 +97,6 @@ public class AnimationController {
         newTrack.fadeIn(transitionTimeSec);
 
         activeTracks.put(animationName, newTrack);
-        AsyncAnimationEngine.getInstance().start();
     }
 
     public void queue(String animationName, boolean loop) {
@@ -111,7 +109,6 @@ public class AnimationController {
 
     public void queue(String animationName, boolean loop, boolean hold, float transitionTimeSec, int layer, @Nullable Set<String> boneMask) {
         animationInQueue.add(new QueueEntry(animationName, loop, hold, transitionTimeSec, layer, boneMask));
-        AsyncAnimationEngine.getInstance().start();
     }
 
     public void clearQueue() {
@@ -154,7 +151,7 @@ public class AnimationController {
 
         processQueue();
 
-        lookAtController.update(deltaTime);
+        //lookAtController.update(deltaTime);
 
         Matrix4f parentWorldMatrix = new Matrix4f();
         Matrix4f parentRestWorldMatrix = new Matrix4f();
@@ -231,7 +228,11 @@ public class AnimationController {
             }
         }
 
-        finalTransform = lookAtController.apply(boneName, finalTransform);
+        //finalTransform = lookAtController.apply(boneName, finalTransform);
+
+        for (BoneModifier modifier : boneModifiers) {
+            finalTransform = modifier.apply(boneName, finalTransform);
+        }
 
         Matrix4f staticLocalMatrix = new Matrix4f()
                 .translate(bone.pivot()[0], bone.pivot()[1], bone.pivot()[2]);
@@ -392,7 +393,21 @@ public class AnimationController {
         return animationInQueue;
     }
 
+    public void addModifier(BoneModifier modifier) {
+        this.boneModifiers.add(modifier);
+    }
+
+    public void removeModifier(BoneModifier modifier) {
+        this.boneModifiers.remove(modifier);
+    }
+
+    public void clearModifiers() {
+        this.boneModifiers.clear();
+    }
+
+/*
     public LookAtController getLookAt() {
         return lookAtController;
     }
+ */
 }

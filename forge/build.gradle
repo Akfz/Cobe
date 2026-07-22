@@ -73,12 +73,20 @@ sourceSets {
                     'src/main/java',
                     project(':bridge').file('build/bridge/java')
             ]
+            test {
+                java.srcDirs = ['build/bridge/testJava']
+                resources.srcDirs = ['build/bridge/testResources']
+            }
         }
         resources {
             srcDirs = [
                     'src/main/resources',
                     project(':bridge').file('build/bridge/resources')
             ]
+            test {
+                java.srcDirs = ['build/bridge/testJava']
+                resources.srcDirs = ['build/bridge/testResources']
+            }
         }
     }
 }

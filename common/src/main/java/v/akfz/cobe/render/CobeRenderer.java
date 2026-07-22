@@ -108,16 +108,23 @@ public interface CobeRenderer<T extends AnimatedObject> {
         return NULL_TEXTURE;
     }
 
+    Map<String, ResourceLocation> BONE_TEXTURE_OVERRIDE_CACHE = new ConcurrentHashMap<>();
+
     default @Nullable ResourceLocation getBoneTextureOverride(String boneName) {
-        ModelData model = getModelData(getNameOfModel());
-        if (model != null && model.texturePaths != null) {
-            for (BoneTexture bt : model.texturePaths) {
-                if (bt.getBone() != null && bt.getBone().equals(boneName)) {
-                    return resolveTexture(bt);
+        String modelName = getNameOfModel();
+        String cacheKey = modelName + ":" + boneName;
+
+        return BONE_TEXTURE_OVERRIDE_CACHE.computeIfAbsent(cacheKey, key -> {
+            ModelData model = getModelData(modelName);
+            if (model != null && model.texturePaths != null) {
+                for (BoneTexture bt : model.texturePaths) {
+                    if (bt.getBone() != null && bt.getBone().equals(boneName)) {
+                        return resolveTexture(bt);
+                    }
                 }
             }
-        }
-        return null;
+            return null;
+        });
     }
 
     default RenderType getRenderTypeForBone(String bone) {
@@ -166,7 +173,7 @@ public interface CobeRenderer<T extends AnimatedObject> {
         poseStack.popPose();
     }
 
-    private void renderBoneRecursively(PoseStack poseStack, Matrix4f entityWorldMatrix, T animated, BoneRData bone, MultiBufferSource bufferSource, RenderType defaultRenderType, @Nullable VertexConsumer defaultBuffer,
+    default void renderBoneRecursively(PoseStack poseStack, Matrix4f entityWorldMatrix, T animated, BoneRData bone, MultiBufferSource bufferSource, RenderType defaultRenderType, @Nullable VertexConsumer defaultBuffer,
                                        int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         poseStack.pushPose();
 
