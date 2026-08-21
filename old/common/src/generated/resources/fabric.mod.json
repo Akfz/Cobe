@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "cobe",
+  "version": "1",
+  "name": "Cobe",
+  "description": "geckolib the best! \n built-in : javacv,opencv,ffmpeg",
+  "license": "MIT",
+  "icon": "assets/cobe/icon.png",
+  "environment": "*",
+  "authors": [
+    "Akaize"
+  ],
+  "entrypoints": { "main": [ "v.akfz.cobe.CobeMod_fabric" ] },
+  "mixins": [ "cobe.mixins.json" ],
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "minecraft": "1.20.1"
+  }
+}

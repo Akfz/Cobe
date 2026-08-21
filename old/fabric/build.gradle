@@ -1,0 +1,90 @@
+plugins {
+    id 'fabric-loom' version "${fabric_loom_version}"
+}
+
+base {
+    archivesName = "${project.archives_base_name}-fabric"
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-1.20.1:2023.09.03")
+    }
+    modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+
+    compileOnly "io.github.llamalad7:mixinextras-common:0.4.1"
+    annotationProcessor "io.github.llamalad7:mixinextras-common:0.4.1"
+}
+
+evaluationDependsOn(':bridge')
+
+sourceSets {
+    main {
+        java {
+            srcDirs = [
+                    'src/main/java',
+                    project(':bridge').file('build/bridge/java')
+            ]
+        }
+        resources {
+            srcDirs = [
+                    'src/main/resources',
+                    project(':bridge').file('build/bridge/resources')
+            ]
+        }
+    }
+}
+
+tasks.named('compileJava', JavaCompile) {
+    dependsOn project(':bridge').tasks.named('copyCommon')
+}
+
+tasks.named('processResources', ProcessResources) {
+    dependsOn project(':bridge').tasks.named('copyCommon')
+}
+
+loom {
+    runs {
+        client {
+            client()
+            runDir "run"
+        }
+    }
+    mods {
+        "${project.mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude "META-INF/mods.toml"
+
+    var replaceProperties = [
+            minecraft_version: project.minecraft_version,
+            loader_version: project.fabric_loader_version,
+            version: project.mod_version
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching('fabric.mod.json') {
+        expand replaceProperties + [project: project]
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from sourceSets.main.output
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-AmodLoaderTarget=fabric"
+}

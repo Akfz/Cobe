@@ -1,6 +1,8 @@
 package v.akfz.cobe.util.texture.video;
 
 import net.minecraft.resources.ResourceLocation;
+import v.akfz.cobe.render.CobeRenderer;
+
 import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -8,14 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class VideoPlayerManager {
     private static final VideoPlayerManager INSTANCE = new VideoPlayerManager();
     public static VideoPlayerManager getInstance() { return INSTANCE; }
-
-    static {
-        try {
-            org.bytedeco.javacpp.Loader.load(org.bytedeco.ffmpeg.global.avutil.class);
-        } catch (Throwable e) {
-            System.err.println("[Cobe Video] Failed to preload FFmpeg libraries: " + e.getMessage());
-        }
-    }
 
     private final Map<String, VideoStreamPlayer> activePlayers = new ConcurrentHashMap<>();
 
@@ -32,6 +26,9 @@ public class VideoPlayerManager {
     }
 
     public ResourceLocation getOrCreatePlayer(ResourceLocation resourceLocation, boolean loop, Runnable onFinished) {
+        if (!VideoLibLoader.ensureLoaded()) {
+            return CobeRenderer.NULL_TEXTURE;
+        }
         String key = "rl_" + resourceLocation.toString();
         VideoStreamPlayer player = activePlayers.computeIfAbsent(key, path -> {
             VideoStreamPlayer p = new VideoStreamPlayer(resourceLocation, loop, onFinished);

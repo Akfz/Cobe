@@ -1,0 +1,153 @@
+plugins {
+    id 'net.minecraftforge.gradle' version "${forge_gradle_version}"
+    id 'org.spongepowered.mixin'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+}
+
+base {
+    archivesName = "${project.archives_base_name}-forge"
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+}
+
+minecraft {
+    mappings channel: 'parchment', version: '2023.09.03-1.20.1'
+    copyIdeResources = true
+
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                "${project.mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        client {
+            property 'mixin.config', "${project.mod_id}.mixins.json"
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+        }
+
+        server {
+            property 'mixin.config', "${project.mod_id}.mixins.json"
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+        }
+
+        data {
+            workingDirectory project.file('run-data')
+            args '--mod', "${project.mod_id}", '--all', '--output', file('src/generated/resources/'), '--existing'
+        }
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${project.forge_version}"
+    annotationProcessor "org.spongepowered:mixin:${project.mixin_version}:processor"
+
+    compileOnly "io.github.llamalad7:mixinextras-common:0.4.1"
+    annotationProcessor "io.github.llamalad7:mixinextras-common:0.4.1"
+    annotationProcessor project(':common')
+}
+
+mixin {
+    add sourceSets.main, "${project.mod_id}.refmap.json"
+    config "${project.mod_id}.mixins.json"
+}
+
+evaluationDependsOn(':bridge')
+
+sourceSets {
+    main {
+        java {
+            srcDirs = [
+                    'src/main/java',
+                    project(':bridge').file('build/bridge/java')
+            ]
+            test {
+                java.srcDirs = ['build/bridge/testJava']
+                resources.srcDirs = ['build/bridge/testResources']
+            }
+        }
+        resources {
+            srcDirs = [
+                    'src/main/resources',
+                    project(':bridge').file('build/bridge/resources')
+            ]
+            test {
+                java.srcDirs = ['build/bridge/testJava']
+                resources.srcDirs = ['build/bridge/testResources']
+            }
+        }
+    }
+}
+
+tasks.named('compileJava', JavaCompile) {
+    dependsOn project(':bridge').tasks.named('copyCommon')
+}
+
+tasks.named('processResources', ProcessResources) {
+    dependsOn project(':bridge').tasks.named('copyCommon')
+}
+
+tasks.named('jar', Jar).configure {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from sourceSets.main.output
+
+    destinationDirectory.set(file("${project.layout.buildDirectory.get().asFile}/libs"))
+    archiveFileName = "${project.archives_base_name}-${project.mod_version}-forge.jar"
+
+    manifest {
+        attributes([
+                "Specification-Title"     : project.mod_id,
+                "Specification-Vendor"    : project.maven_group,
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.mod_version,
+                "Implementation-Vendor"   : project.maven_group,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+
+                "MixinConfigs"            : "${project.mod_id}.mixins.json"
+        ])
+    }
+
+    finalizedBy 'reobfJar'
+}
+
+tasks.register('devJar', Jar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from sourceSets.main.output
+
+    destinationDirectory.set(file("${project.layout.buildDirectory.get().asFile}/libs"))
+
+    archiveFileName = "${project.archives_base_name}-${project.mod_version}-forge-dev.jar"
+
+    manifest {
+        attributes([
+                "Specification-Title"     : project.mod_id,
+                "Specification-Vendor"    : project.maven_group,
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.mod_version,
+                "Implementation-Vendor"   : project.maven_group,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+
+                "MixinConfigs"            : "${project.mod_id}.mixins.json"
+        ])
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-AmodLoaderTarget=forge"
+}

@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "v.akfz.cobe.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "plugin": "v.akfz.aslib.mixin.plugin.AsLibMixinPlugin",
+  "mixins": [
+    "client.EntityRenderersClientMixin",
+    "client.MinecraftMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
