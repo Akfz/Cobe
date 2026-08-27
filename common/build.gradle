@@ -1,15 +1,5 @@
 plugins {
     id 'fabric-loom'
-    id 'maven-publish'
-}
-
-base {
-    archivesName = "${project.archives_base_name}-common"
-}
-
-java {
-    withSourcesJar()
-    withJavadocJar()
 }
 
 repositories {
@@ -31,7 +21,6 @@ sourceSets {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-
     mappings loom.layered() {
         officialMojangMappings()
         def pMc = project.findProperty('parchment_mc_version') ?: project.minecraft_version
@@ -40,11 +29,9 @@ dependencies {
             parchment("org.parchmentmc.data:parchment-${pMc}:${pVer}@zip")
         }
     }
-
     compileOnly "org.spongepowered:mixin:${project.mixin_version}"
     compileOnly "org.ow2.asm:asm:9.6"
     compileOnly "org.ow2.asm:asm-tree:9.6"
-
     def mixinExtrasVer = project.findProperty('mixinextras_version') ?: '0.4.1'
     compileOnly "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
     annotationProcessor "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
@@ -52,7 +39,6 @@ dependencies {
 
 tasks.named('processResources', ProcessResources).configure {
     inputs.properties rootProject.ext.modProperties
-
     filesMatching('fabric.mod.json') {
         expand rootProject.ext.modProperties
     }
@@ -69,22 +55,8 @@ tasks.named('javadoc', Javadoc).configure {
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = "${project.archives_base_name}-common"
-            from components.java
-        }
-    }
-    repositories {
-        if (project.hasProperty('publishing-dir')) {
-            maven {
-                url = rootProject.file(project.property('publishing-dir'))
-            }
-        }
-    }
+    destinationDirectory.set(layout.buildDirectory.dir("libs"))
+    archiveFileName.set("${project.archives_base_name}-${project.mod_version}-common.jar")
 }
 
 tasks.withType(JavaCompile).configureEach {

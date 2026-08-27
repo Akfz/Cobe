@@ -15,7 +15,7 @@
     - Playback queueing (*Queue*) and holding on the last frame (*Hold on last frame*).
     - Set of interpolation functions: `Linear`, `Step`, `Bezier`, as well as Easing functions (`Bounce`, `Elastic`, `Exponential`, `Back`, `Circular`, etc.).
 - **Procedural Modifications (Bone Modifiers)**: Ability to inject custom bone transformations in real time via the `BoneModifier` interface.
-- **Video Textures** (optional): Built-in integration with FFmpeg/JavaCV (`VideoPlayerManager`) for streaming video files (`.mp4`) directly onto model texture maps (may be deprecated or modified in the future).
+- **Video Textures**(optional): Built-in integration with FFmpeg/JavaCV (`VideoPlayerManager`) for streaming video files (`.mp4`) directly onto model texture maps (may be deprecated or modified in the future).
 - **Dynamic Resource Loading**: Loading and parsing models and animations from JSON at runtime or via custom resource packs (`CobeCFGPack`).
 
 **A [plugin](https://github.com/Akfz/Cobe_blenderPlugin) is required for Blender**

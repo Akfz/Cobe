@@ -13,39 +13,39 @@ repositories {
     maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
 }
 
+configurations {
+    bundleCore
+    bundleWin
+    bundleLinux
+    bundleMac
+}
+
 minecraft {
     def pVer = project.findProperty('parchment_version') ?: '2023.09.03'
     def pMc = project.findProperty('parchment_mc_version') ?: project.minecraft_version
     mappings channel: 'parchment', version: "${pVer}-${pMc}"
-
     copyIdeResources = true
-
     runs {
         configureEach {
             workingDirectory project.file('run')
-
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
             property 'forge.earlydisplay.enable', 'false'
-
             mods {
                 "${project.mod_id}" {
                     source sourceSets.main
                 }
             }
         }
-
         client {
             property 'mixin.config', "${project.mod_id}.mixins.json"
         }
-
         server {
             property 'mixin.config', "${project.mod_id}.mixins.json"
         }
-
         data {
             workingDirectory project.file('run-data')
-            args '--mod', "${project.mod_id}", '--all', '--output', file('src/generated/resources/'), '--existing'
+            args '--mod', "${project.mod_id}", '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources')
         }
     }
 }
@@ -57,6 +57,14 @@ dependencies {
     def mixinExtrasVer = project.findProperty('mixinextras_version') ?: '0.4.1'
     compileOnly "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
     annotationProcessor "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
+
+    bundleCore "org.bytedeco:javacv:${rootProject.ext.javacvVersion}"
+    bundleWin "org.bytedeco:javacpp:${rootProject.ext.javacvVersion}:windows-x86_64"
+    bundleWin "org.bytedeco:ffmpeg:${rootProject.ext.ffmpegVersion}:windows-x86_64"
+    bundleLinux "org.bytedeco:javacpp:${rootProject.ext.javacvVersion}:linux-x86_64"
+    bundleLinux "org.bytedeco:ffmpeg:${rootProject.ext.ffmpegVersion}:linux-x86_64"
+    bundleMac "org.bytedeco:javacpp:${rootProject.ext.javacvVersion}:macosx-x86_64"
+    bundleMac "org.bytedeco:ffmpeg:${rootProject.ext.ffmpegVersion}:macosx-x86_64"
 }
 
 mixin {
@@ -66,7 +74,6 @@ mixin {
 
 tasks.named('processResources', ProcessResources).configure {
     inputs.properties rootProject.ext.modProperties
-
     filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
         expand rootProject.ext.modProperties
     }
@@ -77,13 +84,22 @@ tasks.named('compileJava', JavaCompile) {
     options.compilerArgs << "-AoutMapFileWithMappings=true"
 }
 
+def osSuffix = rootProject.ext.getOsSuffix()
+
 tasks.named('jar', Jar).configure {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
-
+    from {
+        configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    from {
+        def osPattern = osSuffix == 'win' ? 'windows' : (osSuffix == 'macos' ? 'macosx' : 'linux')
+        configurations.runtimeClasspath.findAll { it.name.contains(osPattern) }.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
     destinationDirectory.set(layout.buildDirectory.dir("libs"))
     archiveFileName.set("${project.archives_base_name}-${project.mod_version}-forge.jar")
-
     manifest {
         attributes([
                 "Specification-Title"     : project.mod_id,
@@ -101,10 +117,17 @@ tasks.named('jar', Jar).configure {
 tasks.register('devJar', Jar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
-
+    from {
+        configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    from {
+        def osPattern = osSuffix == 'win' ? 'windows' : (osSuffix == 'macos' ? 'macosx' : 'linux')
+        configurations.runtimeClasspath.findAll { it.name.contains(osPattern) }.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
     destinationDirectory.set(layout.buildDirectory.dir("libs"))
     archiveFileName.set("${project.archives_base_name}-${project.mod_version}-forge-dev.jar")
-
     manifest {
         attributes([
                 "Specification-Title"     : project.mod_id,
@@ -117,6 +140,40 @@ tasks.register('devJar', Jar) {
                 "MixinConfigs"            : "${project.mod_id}.mixins.json"
         ])
     }
+}
+
+def createMultiOsJar = { String targetOsSuffix, String configName ->
+    tasks.register("buildJar${targetOsSuffix.capitalize()}", Jar) {
+        dependsOn tasks.jar
+        group = 'build'
+        description = "Собирает Forge JAR с встроенными библиотеками для ${targetOsSuffix}"
+        archiveFileName.set("${project.archives_base_name}-${project.mod_version}-forge-${targetOsSuffix}.jar")
+        destinationDirectory.set(layout.buildDirectory.dir("libs"))
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        from(zipTree(tasks.jar.archiveFile)) {
+            exclude 'META-INF/MANIFEST.MF'
+            exclude 'META-INF/*.SF'
+            exclude 'META-INF/*.DSA'
+            exclude 'META-INF/*.RSA'
+        }
+        from {
+            (configurations.getByName(configName) + configurations.bundleCore).collect {
+                it.isDirectory() ? it : zipTree(it)
+            }
+        }
+        manifest {
+            attributes(tasks.jar.manifest.attributes)
+        }
+    }
+}
+
+createMultiOsJar('win', 'bundleWin')
+createMultiOsJar('linux', 'bundleLinux')
+createMultiOsJar('macos', 'bundleMac')
+
+tasks.register('buildAllOs') {
+    group = 'build'
+    dependsOn 'buildJarWin', 'buildJarLinux', 'buildJarMacos', 'devJar'
 }
 
 tasks.withType(JavaCompile).configureEach {

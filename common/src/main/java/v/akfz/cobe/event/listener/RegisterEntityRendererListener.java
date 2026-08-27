@@ -4,7 +4,9 @@ import v.akfz.aslib.event.api.Listener;
 import v.akfz.aslib.event.api.Subscribe;
 import v.akfz.cobe.event.RegisterEntityRendererEvent;
 
-// пример
+/**
+ * Example (not registered)
+ */
 public class RegisterEntityRendererListener implements Listener {
     public RegisterEntityRendererListener() {
     }

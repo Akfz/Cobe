@@ -5,12 +5,12 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
-import v.akfz.aslib.util.json.GsonHelper;
-import v.akfz.cobe.loader.json.model.ModelData;
-import v.akfz.cobe.render.CobeRenderer;
+import v.akfz.cobe.core.render.DefaultCobeRenderer;
+import v.akfz.cobe.texture.video.VideoPlayerManager;
+import v.akfz.cobe.texture.video.VideoTexture;
 
-public class TestEntityRenderer extends EntityRenderer<TestEntity> implements CobeRenderer<TestEntity> {
-    private static ModelData cachedModel;
+public class TestEntityRenderer extends EntityRenderer<TestEntity> implements DefaultCobeRenderer<TestEntity> {
+    private final int type = 2; //0 - null, 1 - video 2 - buffer
 
     public TestEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -18,8 +18,23 @@ public class TestEntityRenderer extends EntityRenderer<TestEntity> implements Co
 
     @Override
     public void render(TestEntity entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
-
         defaultRender(poseStack, entity, buffer, null, null, partialTick, packedLight);
+    }
+
+    @Override
+    public boolean shouldForceFullUV(String boneName) {
+        return type == 0;
+    }
+
+    @Override
+    public ResourceLocation getBoneTextureOverride(String boneName) {
+        if (type == 1) {
+            return VideoPlayerManager.getInstance().getOrCreatePlayer(new ResourceLocation("eww", "test/video.mp4"), true, () -> {});
+        } else if (type == 2){
+            return null;
+        } else {
+            return DefaultCobeRenderer.super.getBoneTextureOverride(boneName);
+        }
     }
 
     @Override
@@ -28,15 +43,7 @@ public class TestEntityRenderer extends EntityRenderer<TestEntity> implements Co
     }
 
     @Override
-    public ModelData getModelData(String name) {
-        if (cachedModel == null) {
-            cachedModel = GsonHelper.read(new ResourceLocation("cobe", "test/t.json"), ModelData.class);
-        }
-        return cachedModel;
-    }
-
-    @Override
     public String getNameOfModel() {
-        return "";
+        return "CobeModel";
     }
 }

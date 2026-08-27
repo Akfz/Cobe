@@ -60,6 +60,10 @@ tasks.named('jar', Jar).configure {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
 
+    from {
+        configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
     destinationDirectory.set(layout.buildDirectory.dir("libs"))
     archiveFileName.set("${project.archives_base_name}-${project.mod_version}-neoforge.jar")
 
@@ -79,6 +83,10 @@ tasks.named('jar', Jar).configure {
 tasks.register('devJar', Jar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
+
+    from {
+        configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 
     destinationDirectory.set(layout.buildDirectory.dir("libs"))
     archiveFileName.set("${project.archives_base_name}-${project.mod_version}-neoforge-dev.jar")

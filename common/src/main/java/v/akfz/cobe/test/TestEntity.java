@@ -4,11 +4,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
-import v.akfz.cobe.aengine.animation.AnimatedObject;
-import v.akfz.cobe.aengine.animation.calc.AnimationController;
-import v.akfz.cobe.aengine.data.cache.AnimatedObjectCache;
-
-import java.util.List;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
+import v.akfz.cobe.core.animation.AnimationController;
+import v.akfz.cobe.core.animation.AsyncAnimationEngine;
+import v.akfz.cobe.core.cache.AnimatedObjectCache;
+import v.akfz.cobe.core.object.AnimatedObject;
 
 public class TestEntity extends Entity implements AnimatedObject {
     private final AnimationController controller = new AnimationController(this);
@@ -17,6 +18,13 @@ public class TestEntity extends Entity implements AnimatedObject {
     public TestEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
         fastInit();
+        this.getController().play("baked_animation", true);
+    }
+
+    @Override
+    public void remove(@NotNull RemovalReason reason) {
+        super.remove(reason);
+        AsyncAnimationEngine.getInstance().unregister(this.getStrId());
     }
 
     @Override
@@ -41,5 +49,10 @@ public class TestEntity extends Entity implements AnimatedObject {
     @Override
     public AnimatedObjectCache getCache() {
         return cache;
+    }
+
+    @Override
+    public Vec3 getPos() {
+        return super.getPosition(0);
     }
 }

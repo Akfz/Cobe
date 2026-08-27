@@ -8,6 +8,27 @@ buildscript {
     }
 }
 
+ext {
+    getOsClassifier = {
+        def os = System.getProperty("os.name").toLowerCase()
+        def arch = System.getProperty("os.arch").toLowerCase()
+        def isArm = arch.contains("arm") || arch.contains("aarch64")
+        if (os.contains("win")) return "windows-x86_64"
+        if (os.contains("mac")) return isArm ? "macosx-arm64" : "macosx-x86_64"
+        if (os.contains("nix") || os.contains("nux") || os.contains("aix")) return isArm ? "linux-arm64" : "linux-x86_64"
+        return "linux-x86_64"
+    }
+    getOsSuffix = {
+        def os = System.getProperty("os.name").toLowerCase()
+        if (os.contains("win")) return "win"
+        if (os.contains("mac")) return "macos"
+        if (os.contains("nix") || os.contains("nux")) return "linux"
+        return "unknown"
+    }
+    javacvVersion = "1.5.10"
+    ffmpegVersion = "6.1.1-${javacvVersion}"
+}
+
 ext.modProperties = [
         version: project.mod_version,
         loader_version: project.fabric_loader_version,
@@ -26,7 +47,6 @@ ext.modProperties = [
 
 allprojects {
     apply plugin: 'java'
-
     def javaVer = Integer.parseInt(project.findProperty('java_version') ?: '17')
     java {
         sourceCompatibility = JavaVersion.toVersion(javaVer)
@@ -35,7 +55,6 @@ allprojects {
             languageVersion = JavaLanguageVersion.of(javaVer)
         }
     }
-
     version = project.mod_version
     group = project.maven_group
 }
@@ -46,15 +65,6 @@ subprojects {
     tasks.withType(JavaCompile).configureEach {
         it.options.encoding = 'UTF-8'
         it.options.release = javaVer
-    }
-
-    if (project.name != 'common') {
-        evaluationDependsOn(':common')
-        sourceSets.main.java.srcDirs += project(':common').sourceSets.main.java.srcDirs
-        sourceSets.main.resources.srcDirs += project(':common').sourceSets.main.resources.srcDirs
-        dependencies {
-            implementation project(':common')
-        }
     }
 
     tasks.processResources {
@@ -68,17 +78,15 @@ subprojects {
 
     def javacvVersion = "1.5.10"
     def ffmpegVersion = "6.1.1-${javacvVersion}"
+    def osClassifier = rootProject.ext.getOsClassifier()
 
     repositories {
+        mavenCentral()
         if (project.hasProperty('aslib_version') && project.aslib_version) {
-            maven {
-                url = 'https://raw.githubusercontent.com/Akfz/AsLib/maven/'
-            }
+            maven { url = 'https://raw.githubusercontent.com/Akfz/AsLib/maven/' }
         }
         if (project.hasProperty('dbuild_version') && project.dbuild_version) {
-            maven {
-                url = 'https://raw.githubusercontent.com/Akfz/DBuild/maven/'
-            }
+            maven { url = 'https://raw.githubusercontent.com/Akfz/DBuild/maven/' }
         }
         maven { url = 'https://oss.sonatype.org/content/repositories/releases/' }
     }
@@ -90,10 +98,20 @@ subprojects {
         }
         if (project.hasProperty('dbuild_version') && project.dbuild_version) {
             compileOnly "v.akfz:DBuild:${project.dbuild_version}"
-            annotationProcessor("v.akfz:DBuild:${project.dbuild_version}")
+            annotationProcessor "v.akfz:DBuild:${project.dbuild_version}"
         }
         compileOnly "org.bytedeco:javacv:${javacvVersion}"
         compileOnly "org.bytedeco:ffmpeg:${ffmpegVersion}"
+        if (project.name != 'common') {
+            implementation "org.bytedeco:javacpp:${javacvVersion}:${osClassifier}"
+            implementation "org.bytedeco:ffmpeg:${ffmpegVersion}:${osClassifier}"
+        }
+    }
+
+    if (project.name != 'common') {
+        evaluationDependsOn(':common')
+        sourceSets.main.java.srcDirs += project(':common').sourceSets.main.java.srcDirs
+        sourceSets.main.resources.srcDirs += project(':common').sourceSets.main.resources.srcDirs
     }
 
     tasks.withType(Jar).configureEach {
@@ -111,7 +129,6 @@ subprojects {
             }
             return set
         }
-
         exclude { element ->
             if (element.name.endsWith('.class')) {
                 String path = element.path.replace('\\', '/')
@@ -123,7 +140,6 @@ subprojects {
 
     tasks.named('processResources', ProcessResources).configure {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
         if (project.name == 'forge') {
             exclude 'fabric.mod.json'
             exclude 'quilt.mod.json'
@@ -142,28 +158,6 @@ subprojects {
     }
 }
 
-import org.gradle.api.services.BuildService
-import org.gradle.api.services.BuildServiceParameters
-
-abstract class ResourceCleanerService implements BuildService<BuildServiceParameters.None>, AutoCloseable {
-    final List<File> filesToDelete = Collections.synchronizedList(new ArrayList<File>())
-
-    @Override
-    void close() {
-        filesToDelete.each { file ->
-            if (file.exists()) {
-                try {
-                    file.delete()
-                    if (file.parentFile.exists() && file.parentFile.list().length == 0) {
-                        file.parentFile.delete()
-                    }
-                } catch (Exception ignored) {}
-            }
-        }
-    }
-}
-
-
 tasks.register('cleanLibs') {
     group = 'build'
     doLast {
@@ -176,21 +170,30 @@ tasks.register('cleanLibs') {
 
 tasks.register('compileAll') {
     group = 'build'
-    description = 'Cleans and builds all active modules and aggregates output release & dev JARs'
+    description = 'Cleans, builds all OS variants (via buildAllOs), and aggregates output release & dev JARs'
     dependsOn cleanLibs
 
     subprojects.each { subproject ->
         if (subproject.name != 'common') {
-            dependsOn subproject.tasks.matching { it.name == 'build' || it.name == 'assemble' }
+            def multiOsTask = subproject.tasks.findByName('buildAllOs')
+            def fallbackTask = subproject.tasks.findByName('build')
+            if (multiOsTask) {
+                dependsOn multiOsTask
+            } else if (fallbackTask) {
+                dependsOn fallbackTask
+            }
+        } else {
+            dependsOn subproject.tasks.named('build')
         }
     }
 
     doLast {
         def modDir = layout.buildDirectory.dir("libs/mod").get().asFile
         def devDir = layout.buildDirectory.dir("libs/dev").get().asFile
-
         modDir.mkdirs()
         devDir.mkdirs()
+
+        def osSuffixes = ['-win.jar', '-linux.jar', '-macos.jar']
 
         ['fabric', 'forge', 'neoforge'].each { platform ->
             def subProj = findProject(":${platform}")
@@ -199,11 +202,30 @@ tasks.register('compileAll') {
                 if (buildLibs.exists()) {
                     buildLibs.listFiles().each { jarFile ->
                         if (jarFile.name.endsWith(".jar")) {
-                            if (jarFile.name.contains("-dev")) {
+                            def name = jarFile.name
+                            if (name.contains("-dev")) {
                                 copy { from jarFile; into devDir }
-                            } else {
+                            } else if (osSuffixes.any { name.endsWith(it) }) {
                                 copy { from jarFile; into modDir }
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        def commonProj = findProject(":common")
+        if (commonProj != null) {
+            def commonLibs = commonProj.layout.buildDirectory.dir("libs").get().asFile
+            if (commonLibs.exists()) {
+                commonLibs.listFiles().each { jarFile ->
+                    if (jarFile.name.endsWith(".jar") &&
+                            !jarFile.name.startsWith("common-") &&
+                            !jarFile.name.contains("-sources") &&
+                            !jarFile.name.contains("-javadoc")) {
+                        copy {
+                            from jarFile
+                            into devDir
                         }
                     }
                 }
