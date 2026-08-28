@@ -1,5 +1,15 @@
 plugins {
     id 'fabric-loom'
+    id 'maven-publish'
+}
+
+base {
+    archivesName = "${project.archives_base_name}-common"
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
 }
 
 repositories {
@@ -29,18 +39,21 @@ dependencies {
             parchment("org.parchmentmc.data:parchment-${pMc}:${pVer}@zip")
         }
     }
+
     compileOnly "org.spongepowered:mixin:${project.mixin_version}"
     compileOnly "org.ow2.asm:asm:9.6"
     compileOnly "org.ow2.asm:asm-tree:9.6"
+
     def mixinExtrasVer = project.findProperty('mixinextras_version') ?: '0.4.1'
     compileOnly "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
     annotationProcessor "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
 }
 
 tasks.named('processResources', ProcessResources).configure {
-    inputs.properties rootProject.ext.modProperties
+    def props = rootProject.ext.find('modProperties') ?: [:]
+    inputs.properties props
     filesMatching('fabric.mod.json') {
-        expand rootProject.ext.modProperties
+        expand props
     }
 }
 
@@ -52,11 +65,8 @@ tasks.named('javadoc', Javadoc).configure {
     }
 }
 
-jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from sourceSets.main.output
-    destinationDirectory.set(layout.buildDirectory.dir("libs"))
-    archiveFileName.set("${project.archives_base_name}-${project.mod_version}-common.jar")
+tasks.named('jar', Jar).configure {
+    duplicatesStrategy = DuplicatesStrategy.WARN
 }
 
 tasks.withType(JavaCompile).configureEach {

@@ -27,26 +27,28 @@ ext {
     }
     javacvVersion = "1.5.10"
     ffmpegVersion = "6.1.1-${javacvVersion}"
-}
 
-ext.modProperties = [
-        version: project.mod_version,
-        loader_version: project.fabric_loader_version,
-        minecraft_version: project.minecraft_version,
-        mod_id: project.mod_id,
-        mod_name: project.mod_name,
-        mod_description: project.mod_description,
-        mod_authors: project.mod_authors,
-        mod_license: project.mod_license,
-        mod_homepage: project.mod_homepage,
-        mod_issues: project.mod_issues,
-        mod_icon: project.mod_icon,
-        forge_version: project.findProperty('forge_version') ?: '',
-        neoforge_version: project.findProperty('neoforge_version') ?: ''
-]
+    modProperties = [
+            version: project.mod_version,
+            loader_version: project.fabric_loader_version,
+            minecraft_version: project.minecraft_version,
+            mod_id: project.mod_id,
+            mod_name: project.mod_name,
+            mod_description: project.mod_description,
+            mod_authors: project.mod_authors,
+            mod_license: project.mod_license,
+            mod_homepage: project.mod_homepage,
+            mod_issues: project.mod_issues ?: '',
+            mod_icon: project.mod_icon,
+            forge_version: project.findProperty('forge_version') ?: '',
+            neoforge_version: project.findProperty('neoforge_version') ?: ''
+    ]
+}
 
 allprojects {
     apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
     def javaVer = Integer.parseInt(project.findProperty('java_version') ?: '17')
     java {
         sourceCompatibility = JavaVersion.toVersion(javaVer)
@@ -55,6 +57,7 @@ allprojects {
             languageVersion = JavaLanguageVersion.of(javaVer)
         }
     }
+
     version = project.mod_version
     group = project.maven_group
 }
@@ -63,12 +66,22 @@ subprojects {
     def javaVer = Integer.parseInt(project.findProperty('java_version') ?: '17')
 
     tasks.withType(JavaCompile).configureEach {
-        it.options.encoding = 'UTF-8'
-        it.options.release = javaVer
+        options.encoding = 'UTF-8'
+        options.release = javaVer
     }
 
-    tasks.processResources {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    tasks.named('processResources', ProcessResources).configure {
+        def props = rootProject.ext.find('modProperties') ?: [:]
+        inputs.properties props
+        duplicatesStrategy = DuplicatesStrategy.WARN
+
+        if (project.name == 'forge') {
+            exclude 'fabric.mod.json', 'quilt.mod.json', 'META-INF/neoforge.mods.toml'
+        } else if (project.name == 'neoforge') {
+            exclude 'fabric.mod.json', 'quilt.mod.json', 'META-INF/mods.toml'
+        } else if (project.name == 'fabric') {
+            exclude 'META-INF/mods.toml', 'META-INF/neoforge.mods.toml', 'pack.mcmeta'
+        }
     }
 
     configurations {
@@ -76,9 +89,12 @@ subprojects {
         implementation.extendsFrom(embed)
     }
 
-    def javacvVersion = "1.5.10"
-    def ffmpegVersion = "6.1.1-${javacvVersion}"
-    def osClassifier = rootProject.ext.getOsClassifier()
+    if (project.name != 'common') {
+        evaluationDependsOn(':common')
+        def commonProject = project(':common')
+        sourceSets.main.java.srcDirs = [commonProject.sourceSets.main.java.srcDirs, sourceSets.main.java.srcDirs].flatten()
+        sourceSets.main.resources.srcDirs = [commonProject.sourceSets.main.resources.srcDirs, sourceSets.main.resources.srcDirs].flatten()
+    }
 
     repositories {
         mavenCentral()
@@ -88,90 +104,113 @@ subprojects {
         if (project.hasProperty('dbuild_version') && project.dbuild_version) {
             maven { url = 'https://raw.githubusercontent.com/Akfz/DBuild/maven/' }
         }
-        maven { url = 'https://oss.sonatype.org/content/repositories/releases/' }
     }
 
     dependencies {
         if (project.hasProperty('aslib_version') && project.aslib_version) {
-            implementation "v.akfz:aslib-${project.name}:${project.aslib_version}"
-            annotationProcessor "v.akfz:aslib-${project.name}:${project.aslib_version}"
-        }
-        if (project.hasProperty('dbuild_version') && project.dbuild_version) {
-            compileOnly "v.akfz:DBuild:${project.dbuild_version}"
-            annotationProcessor "v.akfz:DBuild:${project.dbuild_version}"
-        }
-        compileOnly "org.bytedeco:javacv:${javacvVersion}"
-        compileOnly "org.bytedeco:ffmpeg:${ffmpegVersion}"
-        if (project.name != 'common') {
-            implementation "org.bytedeco:javacpp:${javacvVersion}:${osClassifier}"
-            implementation "org.bytedeco:ffmpeg:${ffmpegVersion}:${osClassifier}"
-        }
-    }
+            def aslibDep = "v.akfz:aslib-${project.name}:${project.aslib_version}"
 
-    if (project.name != 'common') {
-        evaluationDependsOn(':common')
-        sourceSets.main.java.srcDirs += project(':common').sourceSets.main.java.srcDirs
-        sourceSets.main.resources.srcDirs += project(':common').sourceSets.main.resources.srcDirs
+            if (project.configurations.findByName('modImplementation')) {
+                modImplementation aslibDep
+            } else {
+                implementation aslibDep
+            }
+
+            annotationProcessor aslibDep
+        }
+
+        if (project.hasProperty('dbuild_version') && project.dbuild_version) {
+            def dbuildDep = "v.akfz:DBuild:${project.dbuild_version}"
+            compileOnly dbuildDep
+            annotationProcessor dbuildDep
+        }
+
+        compileOnly "org.bytedeco:javacv:${rootProject.ext.javacvVersion}"
+        compileOnly "org.bytedeco:ffmpeg:${rootProject.ext.ffmpegVersion}"
+
+        if (project.name != 'common') {
+            def osClassifier = rootProject.ext.getOsClassifier()
+            implementation "org.bytedeco:javacpp:${rootProject.ext.javacvVersion}:${osClassifier}"
+            implementation "org.bytedeco:ffmpeg:${rootProject.ext.ffmpegVersion}:${osClassifier}"
+        }
     }
 
     tasks.withType(Jar).configureEach {
         def dontCompileClasses = provider {
-            def set = [] as Set
+            def excludedPrefixes = [] as Set
             sourceSets.main.java.srcDirs.each { File srcDir ->
                 if (srcDir.exists()) {
                     srcDir.eachFileRecurse { File file ->
-                        if (file.name.endsWith('.java') && file.text.contains('@DontCompile')) {
-                            String rel = srcDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
-                            set.add(rel.substring(0, rel.length() - 5))
+                        if (file.name.endsWith('.java')) {
+                            boolean found = false
+                            file.eachLine('UTF-8') { line ->
+                                if (line =~ /\b@DontCompile\b/) {
+                                    found = true
+                                    return false
+                                }
+                            }
+                            if (found) {
+                                String rel = srcDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+                                excludedPrefixes.add(rel.substring(0, rel.length() - 5))
+                            }
                         }
                     }
                 }
             }
-            return set
+            return excludedPrefixes
         }
+
         exclude { element ->
             if (element.name.endsWith('.class')) {
                 String path = element.path.replace('\\', '/')
-                return dontCompileClasses.get().any { prefix -> path.startsWith(prefix + '.') || path.startsWith(prefix + '$') }
+                return dontCompileClasses.get().any { prefix ->
+                    path.startsWith(prefix + '.') || path.startsWith(prefix + '$') || path == (prefix + '.class')
+                }
             }
             return false
         }
     }
 
-    tasks.named('processResources', ProcessResources).configure {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-        if (project.name == 'forge') {
-            exclude 'fabric.mod.json'
-            exclude 'quilt.mod.json'
-            exclude 'META-INF/neoforge.mods.toml'
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId = "${project.archives_base_name}-${project.name}"
+                from components.java
+            }
         }
-        if (project.name == 'neoforge') {
-            exclude 'fabric.mod.json'
-            exclude 'quilt.mod.json'
-            exclude 'META-INF/mods.toml'
-        }
-        if (project.name == 'fabric') {
-            exclude 'META-INF/mods.toml'
-            exclude 'META-INF/neoforge.mods.toml'
-            exclude 'pack.mcmeta'
+        repositories {
+            maven {
+                name = "TargetMaven"
+                def pubUrl = project.findProperty('publishing_url')
+                if (pubUrl) {
+                    url = uri(pubUrl)
+                } else {
+                    url = uri(rootProject.layout.buildDirectory.dir("repo"))
+                }
+                if (project.hasProperty('publishing_username') && project.hasProperty('publishing_password')) {
+                    credentials {
+                        username = project.findProperty('publishing_username')
+                        password = project.findProperty('publishing_password')
+                    }
+                }
+            }
         }
     }
 }
 
 tasks.register('cleanLibs') {
     group = 'build'
+    description = 'Cleans only the libs directories of root and subprojects'
     doLast {
         delete rootProject.layout.buildDirectory.dir("libs")
-        subprojects.each { subproject ->
-            delete subproject.layout.buildDirectory.dir("libs")
-        }
+        subprojects.each { delete it.layout.buildDirectory.dir("libs") }
     }
 }
 
 tasks.register('compileAll') {
     group = 'build'
-    description = 'Cleans, builds all OS variants (via buildAllOs), and aggregates output release & dev JARs'
-    dependsOn cleanLibs
+    description = 'Cleans libs, builds all OS variants, and aggregates output release & dev JARs'
+    dependsOn 'cleanLibs'
 
     subprojects.each { subproject ->
         if (subproject.name != 'common') {
@@ -200,32 +239,14 @@ tasks.register('compileAll') {
             if (subProj != null) {
                 def buildLibs = subProj.layout.buildDirectory.dir("libs").get().asFile
                 if (buildLibs.exists()) {
-                    buildLibs.listFiles().each { jarFile ->
+                    buildLibs.listFiles()?.each { jarFile ->
                         if (jarFile.name.endsWith(".jar")) {
                             def name = jarFile.name
                             if (name.contains("-dev")) {
                                 copy { from jarFile; into devDir }
-                            } else if (osSuffixes.any { name.endsWith(it) }) {
+                            } else if (osSuffixes.any { name.endsWith(it) } || name.contains("-${platform}.jar")) {
                                 copy { from jarFile; into modDir }
                             }
-                        }
-                    }
-                }
-            }
-        }
-
-        def commonProj = findProject(":common")
-        if (commonProj != null) {
-            def commonLibs = commonProj.layout.buildDirectory.dir("libs").get().asFile
-            if (commonLibs.exists()) {
-                commonLibs.listFiles().each { jarFile ->
-                    if (jarFile.name.endsWith(".jar") &&
-                            !jarFile.name.startsWith("common-") &&
-                            !jarFile.name.contains("-sources") &&
-                            !jarFile.name.contains("-javadoc")) {
-                        copy {
-                            from jarFile
-                            into devDir
                         }
                     }
                 }
