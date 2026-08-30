@@ -174,24 +174,20 @@ subprojects {
     publishing {
         publications {
             mavenJava(MavenPublication) {
-                artifactId = "${project.archives_base_name}-${project.name}"
+                def osSuffix = rootProject.ext.getOsSuffix()
+                artifactId = "${project.archives_base_name}-${project.name}-${osSuffix}"
+
                 from components.java
             }
         }
         repositories {
             maven {
                 name = "TargetMaven"
-                def pubUrl = project.findProperty('publishing_url')
-                if (pubUrl) {
-                    url = uri(pubUrl)
+                def pubDir = project.findProperty('publishing-dir')
+                if (pubDir) {
+                    url = rootProject.file(pubDir)
                 } else {
                     url = uri(rootProject.layout.buildDirectory.dir("repo"))
-                }
-                if (project.hasProperty('publishing_username') && project.hasProperty('publishing_password')) {
-                    credentials {
-                        username = project.findProperty('publishing_username')
-                        password = project.findProperty('publishing_password')
-                    }
                 }
             }
         }

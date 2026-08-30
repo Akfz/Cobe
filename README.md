@@ -22,5 +22,4 @@
 
 ## Planned Features
 
-- Add Rigid-body and Ragdoll physics 
-- Update the animation system to allow changing frame rates during playback, and add IK (Inverse Kinematics).
+- Add Rigid-body and Ragdoll physics and add IK (Inverse Kinematics).
