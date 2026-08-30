@@ -11,6 +11,9 @@ public class TickListener implements Listener {
     @Subscribe(priority = EventPriority.HIGHEST)
     public void execute(TickUpdater event) {
         if (event.client) {
+            if (Minecraft.getInstance().player != null && !AsyncAnimationEngine.getInstance().isRunning()) {
+                AsyncAnimationEngine.getInstance().start();
+            }
             AsyncAnimationEngine.getInstance().setGamePaused(Minecraft.getInstance().isPaused());
         }
     }

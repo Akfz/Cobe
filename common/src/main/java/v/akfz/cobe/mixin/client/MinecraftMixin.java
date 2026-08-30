@@ -10,14 +10,6 @@ import v.akfz.cobe.core.animation.AsyncAnimationEngine;
 
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
-    @Inject(method = "tick", at = @At("HEAD"))
-    public void cobe$tick(CallbackInfo ci) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null && !AsyncAnimationEngine.getInstance().isRunning()) {
-            AsyncAnimationEngine.getInstance().start();
-        }
-    }
-
     @Inject(method = "clearLevel(Lnet/minecraft/client/gui/screens/Screen;)V", at = @At("HEAD"))
     private void cobe$onClearLevel(Screen screen, CallbackInfo ci) {
         /*
