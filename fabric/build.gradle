@@ -31,7 +31,7 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
 
     def mixinExtrasVer = project.findProperty('mixinextras_version') ?: '0.4.1'
-    compileOnly "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
+    modCompileOnly "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
     annotationProcessor "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
 
     runtimeOnly "org.bytedeco:javacv:${rootProject.ext.javacvVersion}"
@@ -49,6 +49,7 @@ dependencies {
 
 loom {
     mixin {
+        useLegacyMixinAp = true
         defaultRefmapName = "${project.findProperty('mixin_name') ?: project.mod_id}.refmap.json"
     }
 
