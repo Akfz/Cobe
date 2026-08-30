@@ -8,7 +8,6 @@ import v.akfz.aslib.event.impl.TickUpdater;
 import v.akfz.cobe.core.animation.AsyncAnimationEngine;
 
 public class TickListener implements Listener {
-    private boolean show = false;
     @Subscribe(priority = EventPriority.HIGHEST)
     public void execute(TickUpdater event) {
         if (event.client) {

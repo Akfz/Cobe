@@ -1,6 +1,7 @@
 package v.akfz.cobe;
 
 import v.akfz.aslib.AsLib;
+import v.akfz.aslib.resourcepack.ModAssetsRegistrar;
 import v.akfz.aslib.resourcepack.configpack.ConfigPack;
 import v.akfz.aslib.resourcepack.configpack.ConfigPackRegistry;
 import v.akfz.cobe.configpack.CobeCFGPack;
@@ -15,5 +16,7 @@ public class CobeMod {
         ConfigPackRegistry.register("cobe", (path, data) -> new CobeCFGPack(data.name, path, data.id));
         AsLib.EVENT_BUS.register(new RegisterEntityRendererListenerTEST());
         ConfigPack.Init();
+
+        ModAssetsRegistrar.registerModAssets("cobe");
     }
 }

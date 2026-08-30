@@ -10,7 +10,7 @@ import v.akfz.cobe.texture.video.VideoPlayerManager;
 import v.akfz.cobe.texture.video.VideoTexture;
 
 public class TestEntityRenderer extends EntityRenderer<TestEntity> implements DefaultCobeRenderer<TestEntity> {
-    private final int type = 2; //0 - null, 1 - video 2 - buffer
+    private final int type = 0; //0 - null, 1 - video 2 - buffer
 
     public TestEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -20,7 +20,11 @@ public class TestEntityRenderer extends EntityRenderer<TestEntity> implements De
     public void render(TestEntity entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         defaultRender(poseStack, entity, buffer, null, null, partialTick, packedLight);
     }
-
+    @Override
+	public ResourceLocation getTextureLocation(TestEntity entity) {
+		return null;
+	}
+/*
     @Override
     public boolean shouldForceFullUV(String boneName) {
         return type == 0;
@@ -36,11 +40,7 @@ public class TestEntityRenderer extends EntityRenderer<TestEntity> implements De
             return DefaultCobeRenderer.super.getBoneTextureOverride(boneName);
         }
     }
-
-    @Override
-    public ResourceLocation getTextureLocation(TestEntity entity) {
-        return new ResourceLocation("cobe", "textures/entity/test.png");
-    }
+ */
 
     @Override
     public String getNameOfModel() {

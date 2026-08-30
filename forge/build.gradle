@@ -91,6 +91,8 @@ tasks.named('jar', Jar).configure {
     destinationDirectory.set(layout.buildDirectory.dir("libs"))
     duplicatesStrategy = DuplicatesStrategy.WARN
 
+    from sourceSets.main.output
+
     from {
         configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
     }
