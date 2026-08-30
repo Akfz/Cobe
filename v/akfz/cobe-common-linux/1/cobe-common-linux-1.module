@@ -1,0 +1,109 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "v.akfz",
+    "module": "cobe-common-linux",
+    "version": "1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.14.4"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "cobe-common-linux-1.jar",
+          "url": "cobe-common-linux-1.jar",
+          "size": 98408,
+          "sha512": "c219500cd9be9158b008599dc9f4a2640137b0bc14c7bbccf03e5ac87ea8a423e93315e2a259c3c09f53ee7dadf2e29a7b73009cb5b878c3e9f7ff5752794f86",
+          "sha256": "4fbf7d2280a91893cb8bf90d4a6f847dad350c7168b224c890e718a8e9c9d93b",
+          "sha1": "2625e63f1df0e4984bd432892d400a83cb616c8e",
+          "md5": "6558631bc4afb1485063fa4ccf23f672"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "v.akfz",
+          "module": "aslib-common",
+          "version": {
+            "requires": "Dev_1.20.1-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "cobe-common-linux-1.jar",
+          "url": "cobe-common-linux-1.jar",
+          "size": 98408,
+          "sha512": "c219500cd9be9158b008599dc9f4a2640137b0bc14c7bbccf03e5ac87ea8a423e93315e2a259c3c09f53ee7dadf2e29a7b73009cb5b878c3e9f7ff5752794f86",
+          "sha256": "4fbf7d2280a91893cb8bf90d4a6f847dad350c7168b224c890e718a8e9c9d93b",
+          "sha1": "2625e63f1df0e4984bd432892d400a83cb616c8e",
+          "md5": "6558631bc4afb1485063fa4ccf23f672"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "cobe-common-linux-1-sources.jar",
+          "url": "cobe-common-linux-1-sources.jar",
+          "size": 48804,
+          "sha512": "5942f461abdddeb316460d11a9baf994a73a77a2c22dcfc5786d6c2eddb55fd459fd4f7f6d5dfc3ec67b146e5833aa7c1bdeb4765cd1dda8ece4d1c191fdf6fd",
+          "sha256": "535d7ef9c8c0f771cdfeaabc10a3341fa78349705c66110b46d7f03b2efb8e14",
+          "sha1": "d969365023a47b625b63d5c482b719e599887c4c",
+          "md5": "566378497b01a68511c63d6cca3463bf"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "cobe-common-linux-1-javadoc.jar",
+          "url": "cobe-common-linux-1-javadoc.jar",
+          "size": 315253,
+          "sha512": "3042319ed664a3ab3f4b4938c09a4e5f558c01061c2b31f1f96eacc12e1813bcfbea8216322b27857ddbc382a3d93dc4aaf06afda52524dc6f224b62d857b254",
+          "sha256": "96d07214dbf274a5a7cd2f37bd7d2478c91adac5567a95c68cced59ed2fc656a",
+          "sha1": "075afbc1bb53ceda407950a3c4889ec8d3164ff0",
+          "md5": "92886f0447a414213f0430e2c3c223b6"
+        }
+      ]
+    }
+  ]
+}
