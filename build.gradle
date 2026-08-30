@@ -177,10 +177,18 @@ subprojects {
     publishing {
         publications {
             mavenJava(MavenPublication) {
-                def osSuffix = rootProject.ext.getOsSuffix()
+                def osSuffix = rootProject.getOsSuffix()
                 artifactId = "${project.archives_base_name}-${project.name}-${osSuffix}"
 
-                from components.java
+                artifact(tasks.named('jar')) {
+                    builtBy tasks.named('jar')
+                }
+
+                if (tasks.findByName('sourcesJar')) {
+                    artifact(tasks.named('sourcesJar')) {
+                        builtBy tasks.named('sourcesJar')
+                    }
+                }
             }
         }
         repositories {
