@@ -1,0 +1,113 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "v.akfz",
+    "module": "cobe-forge-win",
+    "version": "1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.14.4"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "cobe-forge-win-1.jar",
+          "url": "cobe-forge-win-1.jar",
+          "size": 298411,
+          "sha512": "7cc2c808bd23bb8a3c47a0a21aead9730f1ebee3d72a46890b3526959e47630890dcfba869b03c0f4f6d7a8b67f13f7f47a9bcfa67ab7e96659e314e43c13fd3",
+          "sha256": "ac011152887ed13adfce227810efe72a596f34889f00c3b2c787ebf93955478b",
+          "sha1": "e969cbafebfb5fd3e19f04c18b09d91f83994433",
+          "md5": "21cff9d8399d624027f92dc34d60a3bc"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "v.akfz",
+          "module": "aslib-forge",
+          "version": {
+            "requires": "Dev_1.20.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.bytedeco",
+          "module": "javacpp",
+          "version": {
+            "requires": "1.5.10"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javacpp",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "linux-x86_64"
+            }
+          }
+        },
+        {
+          "group": "org.bytedeco",
+          "module": "ffmpeg",
+          "version": {
+            "requires": "6.1.1-1.5.10"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "ffmpeg",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "linux-x86_64"
+            }
+          }
+        },
+        {
+          "group": "io.github.llamalad7",
+          "module": "mixinextras-common",
+          "version": {
+            "requires": "0.4.1"
+          }
+        },
+        {
+          "group": "net.minecraftforge",
+          "module": "forge",
+          "version": {
+            "requires": "1.20.1-47.4.20_mapped_parchment_2023.09.03-1.20.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "cobe-forge-win-1.jar",
+          "url": "cobe-forge-win-1.jar",
+          "size": 298411,
+          "sha512": "7cc2c808bd23bb8a3c47a0a21aead9730f1ebee3d72a46890b3526959e47630890dcfba869b03c0f4f6d7a8b67f13f7f47a9bcfa67ab7e96659e314e43c13fd3",
+          "sha256": "ac011152887ed13adfce227810efe72a596f34889f00c3b2c787ebf93955478b",
+          "sha1": "e969cbafebfb5fd3e19f04c18b09d91f83994433",
+          "md5": "21cff9d8399d624027f92dc34d60a3bc"
+        }
+      ]
+    }
+  ]
+}

@@ -27,11 +27,11 @@
         {
           "name": "cobe-forge-linux-1.jar",
           "url": "cobe-forge-linux-1.jar",
-          "size": 298796,
-          "sha512": "e725b1f882bc67f231ec9b9c85e0453890187858362ea08c8308ee2e5e1dcf56812e8645b8c2156a9e06a5882199d744a90be1272b07407da7fec07247ea89c9",
-          "sha256": "4e5ce24504ad2c513f4b1351d7f2d4122927fdc416b933806a80606b589c9d0f",
-          "sha1": "aee9c4fa0454734bd7acae20d7af7ac794593b58",
-          "md5": "4bc3a165ca00ab164bb8ee97be2f6f4c"
+          "size": 298411,
+          "sha512": "bbd630a068850dcdbd6821a991aa107ed636f2021e85616f53b605af162516cd381112e65bfc13d47f9ea04a3e29ca852d60e60a94b9538ef07685c28fe5a092",
+          "sha256": "b7149492ac3dd75bcdd24d6d27829d549096646a109472885bbd47b9d0fd570f",
+          "sha1": "e5feb2ff12028ae857a50c486da547eebcece702",
+          "md5": "e4b2ee84c848f642de326860eeeb91f9"
         }
       ]
     },
@@ -101,11 +101,11 @@
         {
           "name": "cobe-forge-linux-1.jar",
           "url": "cobe-forge-linux-1.jar",
-          "size": 298796,
-          "sha512": "e725b1f882bc67f231ec9b9c85e0453890187858362ea08c8308ee2e5e1dcf56812e8645b8c2156a9e06a5882199d744a90be1272b07407da7fec07247ea89c9",
-          "sha256": "4e5ce24504ad2c513f4b1351d7f2d4122927fdc416b933806a80606b589c9d0f",
-          "sha1": "aee9c4fa0454734bd7acae20d7af7ac794593b58",
-          "md5": "4bc3a165ca00ab164bb8ee97be2f6f4c"
+          "size": 298411,
+          "sha512": "bbd630a068850dcdbd6821a991aa107ed636f2021e85616f53b605af162516cd381112e65bfc13d47f9ea04a3e29ca852d60e60a94b9538ef07685c28fe5a092",
+          "sha256": "b7149492ac3dd75bcdd24d6d27829d549096646a109472885bbd47b9d0fd570f",
+          "sha1": "e5feb2ff12028ae857a50c486da547eebcece702",
+          "md5": "e4b2ee84c848f642de326860eeeb91f9"
         }
       ]
     }

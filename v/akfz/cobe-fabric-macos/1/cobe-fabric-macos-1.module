@@ -1,0 +1,113 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "v.akfz",
+    "module": "cobe-fabric-macos",
+    "version": "1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.14.4"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "cobe-fabric-macos-1.jar",
+          "url": "cobe-fabric-macos-1.jar",
+          "size": 100301,
+          "sha512": "58fc06eb4d035439ef0fc280df99172edf2c675beee9a4ceac22989dab8d3273c03a522d9c51ac457c649a191dfa36e22ba5781129adbcf3ca3770cf2a4b20a5",
+          "sha256": "6c33ada03d7d9b415ed7dcb52c8f844dff72fadbdefcbfff00b6401c70c468aa",
+          "sha1": "9554a309a733c583725be5aa3710d79729940bf5",
+          "md5": "f2c3e0c032baf4397f69e74da3a3370f"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "v.akfz",
+          "module": "aslib-fabric",
+          "version": {
+            "requires": "Dev_1.20.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.bytedeco",
+          "module": "javacpp",
+          "version": {
+            "requires": "1.5.10"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javacpp",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "linux-x86_64"
+            }
+          }
+        },
+        {
+          "group": "org.bytedeco",
+          "module": "ffmpeg",
+          "version": {
+            "requires": "6.1.1-1.5.10"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "ffmpeg",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "linux-x86_64"
+            }
+          }
+        },
+        {
+          "group": "org.bytedeco",
+          "module": "javacv",
+          "version": {
+            "requires": "1.5.10"
+          }
+        },
+        {
+          "group": "net.fabricmc",
+          "module": "fabric-loader",
+          "version": {
+            "requires": "0.15.11"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "cobe-fabric-macos-1.jar",
+          "url": "cobe-fabric-macos-1.jar",
+          "size": 100301,
+          "sha512": "58fc06eb4d035439ef0fc280df99172edf2c675beee9a4ceac22989dab8d3273c03a522d9c51ac457c649a191dfa36e22ba5781129adbcf3ca3770cf2a4b20a5",
+          "sha256": "6c33ada03d7d9b415ed7dcb52c8f844dff72fadbdefcbfff00b6401c70c468aa",
+          "sha1": "9554a309a733c583725be5aa3710d79729940bf5",
+          "md5": "f2c3e0c032baf4397f69e74da3a3370f"
+        }
+      ]
+    }
+  ]
+}

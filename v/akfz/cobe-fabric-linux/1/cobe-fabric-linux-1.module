@@ -28,10 +28,10 @@
           "name": "cobe-fabric-linux-1.jar",
           "url": "cobe-fabric-linux-1.jar",
           "size": 100302,
-          "sha512": "2a2627c50331591030d3b4e418faf4672bf538fef662faa5553ed6ca9ff1980a378633aba11d6308edbb7e7156d75134e8099621e2afab19ecb9ff4834452593",
-          "sha256": "d4c800f9e53172d3008404f8ce577be441c656322bec8e5c54a3369e239fa095",
-          "sha1": "1566b7bf5bce16c837e4c057bab1797e2709d0da",
-          "md5": "0462978cf87e47cef6e7f88965d321e9"
+          "sha512": "9697975393a18d6b7ff4b62d0b86805fbb3a79a212005513423a26733f27e6846182af4e6c72fd570647537c340f9c53d90b180f197c7e2b5363698e5806b5f4",
+          "sha256": "2f57334384178b1a922b5372132ed52b33d36e0c44148fc1b8b66e1127c495d1",
+          "sha1": "3e149ed59c9b671a20a818368b15184a4fa11b99",
+          "md5": "ebf9a26ddb8416b924fb802c10e4417b"
         }
       ]
     },
@@ -102,10 +102,10 @@
           "name": "cobe-fabric-linux-1.jar",
           "url": "cobe-fabric-linux-1.jar",
           "size": 100302,
-          "sha512": "2a2627c50331591030d3b4e418faf4672bf538fef662faa5553ed6ca9ff1980a378633aba11d6308edbb7e7156d75134e8099621e2afab19ecb9ff4834452593",
-          "sha256": "d4c800f9e53172d3008404f8ce577be441c656322bec8e5c54a3369e239fa095",
-          "sha1": "1566b7bf5bce16c837e4c057bab1797e2709d0da",
-          "md5": "0462978cf87e47cef6e7f88965d321e9"
+          "sha512": "9697975393a18d6b7ff4b62d0b86805fbb3a79a212005513423a26733f27e6846182af4e6c72fd570647537c340f9c53d90b180f197c7e2b5363698e5806b5f4",
+          "sha256": "2f57334384178b1a922b5372132ed52b33d36e0c44148fc1b8b66e1127c495d1",
+          "sha1": "3e149ed59c9b671a20a818368b15184a4fa11b99",
+          "md5": "ebf9a26ddb8416b924fb802c10e4417b"
         }
       ]
     }

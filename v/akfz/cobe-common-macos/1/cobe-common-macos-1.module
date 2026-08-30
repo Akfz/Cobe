@@ -1,0 +1,109 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "v.akfz",
+    "module": "cobe-common-macos",
+    "version": "1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.14.4"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "cobe-common-macos-1.jar",
+          "url": "cobe-common-macos-1.jar",
+          "size": 98408,
+          "sha512": "e6742da9a157950f8d6f9c3cffab5bd627e16745244737b8c84fceb419810bbfc78bdaeeb560c5b1048369cb1bde7fc47a7eed2f2231034342b6589a0078ba66",
+          "sha256": "ea226354dff8058c1748a73f3c237fd538263d7890839940ab9d2894198d0ad4",
+          "sha1": "d0d4f01e7c3b85c362236be948df2259c8fc5baf",
+          "md5": "f759899254a1b0f7597fdbc438c1e779"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "v.akfz",
+          "module": "aslib-common",
+          "version": {
+            "requires": "Dev_1.20.1-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "cobe-common-macos-1.jar",
+          "url": "cobe-common-macos-1.jar",
+          "size": 98408,
+          "sha512": "e6742da9a157950f8d6f9c3cffab5bd627e16745244737b8c84fceb419810bbfc78bdaeeb560c5b1048369cb1bde7fc47a7eed2f2231034342b6589a0078ba66",
+          "sha256": "ea226354dff8058c1748a73f3c237fd538263d7890839940ab9d2894198d0ad4",
+          "sha1": "d0d4f01e7c3b85c362236be948df2259c8fc5baf",
+          "md5": "f759899254a1b0f7597fdbc438c1e779"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "cobe-common-macos-1-sources.jar",
+          "url": "cobe-common-macos-1-sources.jar",
+          "size": 48804,
+          "sha512": "787177497f6d2f3941362b6c597878febff1932c17dea6f5e33631b0c2c2c29a5757e521886dae24e55c6bc90273b448ac7fe3b9d9fec0ec35980a116801a09e",
+          "sha256": "44396a3097cd88a066ee6c4e34adafc80699bc0870e7c069f2bb351b7ab0d407",
+          "sha1": "b85328a5f974350bfcf063236bb7336379d9abc8",
+          "md5": "78d30bb0b06c021fab0ceaa8659133f9"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "cobe-common-macos-1-javadoc.jar",
+          "url": "cobe-common-macos-1-javadoc.jar",
+          "size": 315253,
+          "sha512": "e4aa80d13a89134e0cc95bf127b558275e2c0383e522f5b236f7c984468118e69edadef2aa4c291a9f152657aaa4c239d6c0e97ada000d221b116fd8249a05c1",
+          "sha256": "7ca46cc22b7c8f34c455237f5fa3690859ebd0562035c665a514cb2886a7b1a1",
+          "sha1": "2a93e418cdf6da9820eebc82c87df01943601a3b",
+          "md5": "77487b42b796dabf0aaacb407a4ae4f8"
+        }
+      ]
+    }
+  ]
+}
