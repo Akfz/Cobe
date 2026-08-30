@@ -180,14 +180,15 @@ subprojects {
                 def osSuffix = rootProject.getOsSuffix()
                 artifactId = "${project.archives_base_name}-${project.name}-${osSuffix}"
 
-                artifact(tasks.named('jar')) {
-                    builtBy tasks.named('jar')
-                }
-
-                if (tasks.findByName('sourcesJar')) {
-                    artifact(tasks.named('sourcesJar')) {
-                        builtBy tasks.named('sourcesJar')
-                    }
+                if (project.name == 'fabric') {
+                    artifact jar
+                    artifact sourcesJar
+                } else if (project.name == 'forge' || project.name == 'neoforge') {
+                    artifact jar
+                    artifact sourcesJar
+                } else {
+                    artifact jar
+                    artifact sourcesJar
                 }
             }
         }
