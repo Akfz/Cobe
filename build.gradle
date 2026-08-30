@@ -73,6 +73,11 @@ subprojects {
         options.release = javaVer
     }
 
+    java {
+        withSourcesJar()
+        withJavadocJar()
+    }
+
     tasks.named('processResources', ProcessResources).configure {
         def props = rootProject.ext.find('modProperties') ?: [:]
         inputs.properties props
