@@ -19,6 +19,9 @@ ext {
         return "linux-x86_64"
     }
     getOsSuffix = {
+        if (project.hasProperty('os')) {
+            return project.property('os')
+        }
         def os = System.getProperty("os.name").toLowerCase()
         if (os.contains("win")) return "win"
         if (os.contains("mac")) return "macos"
