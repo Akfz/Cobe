@@ -1,4 +1,4 @@
-package v.akfz.cobe.test;
+/*package v.akfz.cobe.test;
 
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -11,3 +11,4 @@ public class CobeRegistries {
     @RegisterModule(id = "cobe:testentity")
     public static EntityType<TestEntity> TEST_ENTITY = RegistryHelper.createEntity(TestEntity::new,MobCategory.MISC,1f,1f,"cobe:testentity");
 }
+ */
