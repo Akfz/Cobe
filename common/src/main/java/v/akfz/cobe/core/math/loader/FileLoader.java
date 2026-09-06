@@ -8,6 +8,9 @@ import org.jetbrains.annotations.Nullable;
 import v.akfz.aslib.util.json.GsonHelper;
 import v.akfz.cobe.core.cache.AnimationCache;
 import v.akfz.cobe.core.cache.ModelCache;
+// ДОБАВЛЕНО: Импорты для хитбоксов (убедись, что пути совпадают с твоими)
+import v.akfz.cobe.core.cache.HitboxCache;
+import v.akfz.cobe.core.data.hitbox.HitboxData;
 import v.akfz.cobe.core.data.Animation;
 import v.akfz.cobe.core.data.loader.json.animation.AnimationsData;
 import v.akfz.cobe.core.data.loader.json.model.ModelData;
@@ -19,6 +22,7 @@ import java.nio.file.Path;
 
 public final class FileLoader {
     private FileLoader(){}
+
     public static void loadAnimationFile(ResourceLocation location) {
         AnimationsData data = GsonHelper.read(location, AnimationsData.class, Minecraft.getInstance().getResourceManager());
         if (data == null) {
@@ -48,7 +52,7 @@ public final class FileLoader {
     }
 
     public static void loadAnimationFile(ResourceLocation location, ResourceManager manager) {
-        AnimationsData data = (AnimationsData) GsonHelper.read(location, AnimationsData.class, manager);
+        AnimationsData data = GsonHelper.read(location, AnimationsData.class, manager);
         if (data == null) {
             System.out.println("Failed to load animation from RL path : " + location.toString());
         } else {
@@ -62,7 +66,7 @@ public final class FileLoader {
     }
 
     public static void loadModelFile(ResourceLocation location, ResourceManager manager) {
-        ModelData data = (ModelData) GsonHelper.read(location, ModelData.class, manager);
+        ModelData data = GsonHelper.read(location, ModelData.class, manager);
         if (data == null) {
             System.out.println("Failed to load model from RL path : " + location.toString());
         } else {
@@ -76,7 +80,7 @@ public final class FileLoader {
             System.out.println("Failed to load model from RL path : " + location.toString());
             return;
         }
-        ModelCache.addCacheModel(data,data.nameOfModel);
+        ModelCache.addCacheModel(data, data.nameOfModel);
     }
 
     public static void loadModelFile(Path path) {
@@ -85,12 +89,48 @@ public final class FileLoader {
             System.out.println("Failed to load model from path : " + path.toString());
             return;
         }
-        ModelCache.addCacheModel(data,data.nameOfModel);
+        ModelCache.addCacheModel(data, data.nameOfModel);
+    }
+
+    public static void loadHitboxFile(ResourceLocation location) {
+        HitboxData data = GsonHelper.read(location, HitboxData.class, Minecraft.getInstance().getResourceManager());
+        if (data == null) {
+            System.out.println("Failed to load hitbox from RL path : " + location.toString());
+            return;
+        }
+        String path = location.getPath();
+        String fileName = path.substring(path.lastIndexOf('/') + 1);
+
+        HitboxCache.addCacheHitbox(data, fileName);
+    }
+
+    public static void loadHitboxFile(Path path) {
+        HitboxData data = GsonHelper.read(path, HitboxData.class);
+        if (data == null) {
+            System.out.println("Failed to load hitbox from path : " + path.toString());
+            return;
+        }
+        String fileName = path.getFileName().toString();
+
+        HitboxCache.addCacheHitbox(data, fileName);
+    }
+
+    public static void loadHitboxFile(ResourceLocation location, ResourceManager manager) {
+        HitboxData data = GsonHelper.read(location, HitboxData.class, manager);
+        if (data == null) {
+            System.out.println("Failed to load hitbox from RL path : " + location.toString());
+        } else {
+            String path = location.getPath();
+            String fileName = path.substring(path.lastIndexOf('/') + 1);
+
+            HitboxCache.addCacheHitbox(data, fileName);
+        }
     }
 
     public enum FileType {
         MODEL,
         ANIMATION,
+        HITBOX,
         UNKNOWN
     }
 
@@ -120,7 +160,9 @@ public final class FileLoader {
             while (jsonReader.hasNext()) {
                 String name = jsonReader.nextName();
 
-                if ("texturePaths".equals(name) || "bones".equals(name)) {
+                if ("hbVersion".equals(name)) {
+                    return FileType.HITBOX;
+                } else if ("texturePaths".equals(name)) {
                     return FileType.MODEL;
                 } else if ("animations".equals(name)) {
                     return FileType.ANIMATION;
@@ -133,4 +175,3 @@ public final class FileLoader {
         return FileType.UNKNOWN;
     }
 }
-

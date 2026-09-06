@@ -14,13 +14,19 @@ public class CobeCFGPack extends SimpleFileResourcePack {
 
     private void initializeResources() {
         this.getCache().forEach((relativePath, path) -> {
-            if (relativePath.toLowerCase().endsWith(".json")) {
+            if (relativePath.toLowerCase().endsWith(".json") || relativePath.toLowerCase().endsWith(".hb") ) {
                 FileLoader.FileType type = FileLoader.identifyType(path);
 
-                if (type == FileLoader.FileType.MODEL) {
-                    FileLoader.loadModelFile(path);
-                } else if (type == FileLoader.FileType.ANIMATION) {
-                    FileLoader.loadAnimationFile(path);
+                switch (type) {
+	                case MODEL -> {
+                        FileLoader.loadModelFile(path);
+                    }
+	                case ANIMATION -> {
+                        FileLoader.loadAnimationFile(path);
+                    }
+	                case HITBOX ->{
+                        FileLoader.loadHitboxFile(path);
+                    }
                 }
             }
         });

@@ -94,7 +94,7 @@ public interface DefaultCobeRenderer<T extends AnimatedObject> {
                                float partialTick, int packedLight) {
         poseStack.pushPose();
         poseStack.scale(-1.0f, 1.0f, 1.0f);
-        //poseStack.mulPose(Axis.YN.rotationDegrees(180.0F));
+        poseStack.mulPose(Axis.YN.rotationDegrees(180.0F));
         //poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
 
         Matrix4f entityWorldMatrix = new Matrix4f(poseStack.last().pose());
