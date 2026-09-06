@@ -2,8 +2,6 @@
 
 # WIP! (MOD MAY UNSTABLE IN MULTIPLAYER)
 
-# WIP! (MOD MAY UNSTABLE IN MULTIPLAYER)
-
 # Cobe
 
 **Cobe** is a library and animation engine for Minecraft designed to work with complex 3D models and meshes. Created as a more feature-rich alternative to GeckoLib.
