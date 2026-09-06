@@ -88,6 +88,18 @@ public class AnimatedObjectCache {
         return currentSnapshot.boneRestWorld().getOrDefault(boneName, new Matrix4f());
     }
 
+    public Map<String, Matrix4f> getAllBoneLocalMatrices() {
+        return currentSnapshot.boneLocal();
+    }
+
+    public Map<String, Matrix4f> getAllBoneWorldMatrices() {
+        return currentSnapshot.boneWorld();
+    }
+
+    public Map<String, Matrix4f> getAllBoneSkinMatrices() {
+        return currentSnapshot.boneSkin();
+    }
+
     public Matrix4f getBoneSkinMatrix(String boneName) {
         return currentSnapshot.boneSkin().get(boneName);
     }

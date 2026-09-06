@@ -1,5 +1,7 @@
 [English] | [Русский](README_RU.md)
 
+# WIP! (MOD MAY UNSTABLE IN MULTIPLAYER)
+
 # Cobe
 
 **Cobe** is a library and animation engine for Minecraft designed to work with complex 3D models and meshes. Created as a more feature-rich alternative to GeckoLib.
@@ -23,3 +25,4 @@
 ## Planned Features
 
 - Add Rigid-body and Ragdoll physics and add IK (Inverse Kinematics).
+- Fixes and add server side animation and other things
