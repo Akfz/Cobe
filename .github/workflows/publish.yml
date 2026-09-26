@@ -60,7 +60,7 @@ jobs:
       - name: Collect fabric artifacts
         run: |
           mkdir -p build/repo/fabric
-          SRC=$(find build -type f -name '*-fabric-*-dev.jar' | head -n1)
+          SRC=$(find build -type f -name '*-fabric-dev.jar' | head -n1)
           if [ -z "$SRC" ]; then
             echo "=== Debug: all jars in build/ ==="
             find build -name "*.jar" -type f
@@ -82,7 +82,7 @@ jobs:
       - name: Collect forge artifacts
         run: |
           mkdir -p build/repo/forge
-          SRC=$(find build -type f -name '*-forge-*-dev.jar' | head -n1)
+          SRC=$(find build -type f -name '*-forge-dev.jar' | head -n1)
           if [ -z "$SRC" ]; then
             echo "=== Debug: all jars in build/ ==="
             find build -name "*.jar" -type f
