@@ -60,8 +60,10 @@ jobs:
       - name: Collect fabric artifacts
         run: |
           mkdir -p build/repo/fabric
-          SRC=$(find build/fabric/libs -type f -name '*-dev.jar' | head -n1)
+          SRC=$(find build -type f -name '*-fabric-*-dev.jar' | head -n1)
           if [ -z "$SRC" ]; then
+            echo "=== Debug: all jars in build/ ==="
+            find build -name "*.jar" -type f
             echo "No dev jar found for fabric!" && exit 1
           fi
           cp -v "$SRC" "build/repo/fabric/cobe-fabric-${COBE_VERSION}.jar"
@@ -80,8 +82,10 @@ jobs:
       - name: Collect forge artifacts
         run: |
           mkdir -p build/repo/forge
-          SRC=$(find build/forge/libs -type f -name '*-dev.jar' | head -n1)
+          SRC=$(find build -type f -name '*-forge-*-dev.jar' | head -n1)
           if [ -z "$SRC" ]; then
+            echo "=== Debug: all jars in build/ ==="
+            find build -name "*.jar" -type f
             echo "No dev jar found for forge!" && exit 1
           fi
           cp -v "$SRC" "build/repo/forge/cobe-forge-${COBE_VERSION}.jar"
