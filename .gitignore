@@ -29,7 +29,9 @@ oldcode/.idea/
 .vscode/
 
 .idea
-build/
+/build/
+/src/cpp/build
+/src/cpp/build-win
 
 #i put here win-jdk (jni)
 java_d/
@@ -52,7 +54,6 @@ forgeRun/
 forgeRunServer/
 fabricRunServer/
 /old/
-build-win/
 
 .gradle/
 /bin/
