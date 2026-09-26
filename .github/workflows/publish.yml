@@ -1,0 +1,96 @@
+name: Cobe
+
+on:
+  push:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Determine Version from Branch Name
+        run: |
+          VERSION="${GITHUB_REF_NAME}-SNAPSHOT"
+          echo "COBE_VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Publishing version: ${VERSION}"
+
+      - name: Build fabric
+        run: ./gradlew build -Pdbuild.loader=fabric -Pmod_version=${{ env.COBE_VERSION }}
+
+      - name: Build forge
+        run: ./gradlew build -Pdbuild.loader=forge -Pmod_version=${{ env.COBE_VERSION }}
+
+      - name: Collect fabric artifacts
+        run: |
+          mkdir -p build/repo/fabric
+          SRC=$(find build/fabric/libs -type f -name '*-dev.jar' | head -n1)
+          if [ -z "$SRC" ]; then
+            echo "No dev jar found for fabric!" && exit 1
+          fi
+          cp -v "$SRC" "build/repo/fabric/cobe-fabric-${COBE_VERSION}.jar"
+          cat > "build/repo/fabric/cobe-fabric-${COBE_VERSION}.pom" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <project xmlns="http://maven.apache.org/POM/4.0.0">
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>v.akfz</groupId>
+            <artifactId>cobe-fabric</artifactId>
+            <version>${COBE_VERSION}</version>
+            <packaging>jar</packaging>
+          </project>
+          EOF
+          ls -la build/repo/fabric/
+
+      - name: Collect forge artifacts
+        run: |
+          mkdir -p build/repo/forge
+          SRC=$(find build/forge/libs -type f -name '*-dev.jar' | head -n1)
+          if [ -z "$SRC" ]; then
+            echo "No dev jar found for forge!" && exit 1
+          fi
+          cp -v "$SRC" "build/repo/forge/cobe-forge-${COBE_VERSION}.jar"
+          cat > "build/repo/forge/cobe-forge-${COBE_VERSION}.pom" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <project xmlns="http://maven.apache.org/POM/4.0.0">
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>v.akfz</groupId>
+            <artifactId>cobe-forge</artifactId>
+            <version>${COBE_VERSION}</version>
+            <packaging>jar</packaging>
+          </project>
+          EOF
+          ls -la build/repo/forge/
+
+      - name: Deploy fabric to maven
+        uses: jamesives/github-pages-deploy-action@v4
+        with:
+          folder: build/repo/fabric
+          branch: maven
+          target-folder: v/akfz/cobe-fabric/${{ env.COBE_VERSION }}
+          clean: true
+
+      - name: Deploy forge to maven
+        uses: jamesives/github-pages-deploy-action@v4
+        with:
+          folder: build/repo/forge
+          branch: maven
+          target-folder: v/akfz/cobe-forge/${{ env.COBE_VERSION }}
+          clean: true

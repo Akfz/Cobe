@@ -103,6 +103,8 @@ dbuild {
     dbuildannotations()
 
     registryCommand 'runClient', 'fabric', 'forge'
+    registryCommand 'runServer', 'fabric', 'forge'
+    registryCommand 'build', 'fabric', 'forge'
 
     fabric {
         devJar()
@@ -199,7 +201,6 @@ dbuild {
     forge {
         devJar()
         obfJar()
-        registryCommand 'runClient', 'runServer', 'build'
 
         configure {
             apply plugin: 'net.minecraftforge.gradle'
