@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "cobe",
+  "version": "1.0",
+  "name": "Cobe",
+  "description": "geckolib the best!",
+  "license": "MIT",
+  "icon": "assets/aslib/icon.png",
+  "environment": "*",
+  "authors": [
+    "Akaize"
+  ],
+  "entrypoints": {
+    "main": [
+      "v.akfz.cobe.CobeMod_fabric"
+    ]
+  },
+  "mixins": [
+    "cobe.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "minecraft": "1.20.1",
+    "aslib": ">=1.0"
+  }
+}
