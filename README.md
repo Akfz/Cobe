@@ -17,7 +17,7 @@
     - Playback queueing (*Queue*) and holding on the last frame (*Hold on last frame*).
     - Set of interpolation functions: `Linear`, `Step`, `Bezier`, as well as Easing functions (`Bounce`, `Elastic`, `Exponential`, `Back`, `Circular`, etc.).
 - **Procedural Modifications (Bone Modifiers)**: Ability to inject custom bone transformations in real time via the `BoneModifier` interface.
-- **Video Textures**(optional): Built-in integration with FFmpeg/JavaCV (`VideoPlayerManager`) for streaming video files (`.mp4`) directly onto model texture maps (may be deprecated or modified in the future).
+- **Video Textures** (optional; windows/linux only): High-performance custom native C++ video decoder via JNI (`NativeVideoDecoder`). Supports streaming `.mp4` (H.264), `.mpg` (MPEG-1), and animated `.gif` files directly onto model texture maps. Built from scratch without heavy dependencies like FFmpeg, utilizing `pl_mpeg`, `minimp4`, `OpenH264`, and `stb_image` for efficient YUV420 to RGBA conversion.
 - **Advanced Hitbox System**: Support for complex, bone-attached hitboxes via `.hb` files. Features high-precision collision detection based on the Separating Axis Theorem (SAT), fully compatible with standard Minecraft AABB hitboxes.
 - **Dynamic Resource Loading**: Loading and parsing of models, animations, and hitbox data (`.hb`) from JSON at runtime or via custom resource packs (`CobeCFGPack`).
 
