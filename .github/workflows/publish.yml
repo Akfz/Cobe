@@ -27,6 +27,9 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Install NASM
+        run: sudo apt-get update && sudo apt-get install -y nasm
+
       - name: Determine Version from Branch Name
         run: |
           VERSION="${GITHUB_REF_NAME}-SNAPSHOT"
