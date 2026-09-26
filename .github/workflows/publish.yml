@@ -30,6 +30,21 @@ jobs:
       - name: Install NASM
         run: sudo apt-get update && sudo apt-get install -y nasm
 
+      - name: Install MinGW-w64
+        run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64 g++-mingw-w64
+
+      - name: Download and extract Windows JDK
+        run: |
+          mkdir -p java_d/winjava
+          curl -L -o winjdk.zip "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.20.1%2B1/OpenJDK17U-jdk_x64_windows_hotspot_17.0.20.1_1.zip"
+          unzip -q winjdk.zip -d java_d/winjava
+          if [ -d "java_d/winjava/jdk-17.0.20.1+1" ]; then
+            mv java_d/winjava/jdk-17.0.20.1+1/* java_d/winjava/
+            rmdir java_d/winjava/jdk-17.0.20.1+1
+          fi
+          rm winjdk.zip
+          ls -la java_d/winjava/
+
       - name: Determine Version from Branch Name
         run: |
           VERSION="${GITHUB_REF_NAME}-SNAPSHOT"
