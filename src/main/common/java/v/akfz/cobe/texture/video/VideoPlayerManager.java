@@ -4,8 +4,10 @@ import net.minecraft.resources.ResourceLocation;
 import v.akfz.cobe.core.render.DefaultCobeRenderer;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 public class VideoPlayerManager {
     private static final VideoPlayerManager INSTANCE = new VideoPlayerManager();
@@ -16,23 +18,11 @@ public class VideoPlayerManager {
     private VideoPlayerManager() {}
 
     public ResourceLocation getOrCreatePlayer(File file, boolean loop, Runnable onFinished) {
-        String key = "file_" + file.getAbsolutePath();
-        VideoStreamPlayer player = activePlayers.computeIfAbsent(key, path -> {
-            VideoStreamPlayer p = new VideoStreamPlayer(file, loop, onFinished);
-            p.start();
-            return p;
-        });
-        return player.getTextureLocation();
+        return obtain(keyOf(file), () -> new VideoStreamPlayer(file, loop, onFinished));
     }
 
-    public ResourceLocation getOrCreatePlayer(ResourceLocation resourceLocation, boolean loop, Runnable onFinished) {
-        String key = "rl_" + resourceLocation.toString();
-        VideoStreamPlayer player = activePlayers.computeIfAbsent(key, path -> {
-            VideoStreamPlayer p = new VideoStreamPlayer(resourceLocation, loop, onFinished);
-            p.start();
-            return p;
-        });
-        return player.getTextureLocation();
+    public ResourceLocation getOrCreatePlayer(ResourceLocation rl, boolean loop, Runnable onFinished) {
+        return obtain(keyOf(rl), () -> new VideoStreamPlayer(rl, loop, onFinished));
     }
 
     public ResourceLocation getOrCreatePlayer(String relativePath, boolean loop, Runnable onFinished) {
@@ -43,16 +33,51 @@ public class VideoPlayerManager {
         }
     }
 
-    public void stopAndRelease(String key) {
-        VideoStreamPlayer player = activePlayers.remove(key);
-        if (player != null) {
-            player.stop();
+    private ResourceLocation obtain(String key, Supplier<VideoStreamPlayer> factory) {
+        VideoStreamPlayer existing = activePlayers.get(key);
+        if (existing != null) return existing.getTextureLocation();
+
+        VideoStreamPlayer fresh = factory.get();
+        VideoStreamPlayer prev = activePlayers.putIfAbsent(key, fresh);
+        if (prev != null) {
+            fresh.stop();
+            return prev.getTextureLocation();
+        }
+        fresh.start();
+        return fresh.getTextureLocation();
+    }
+
+    public void stopAndRelease(File file) {
+        stopAndReleaseKey(keyOf(file));
+    }
+
+    public void stopAndRelease(ResourceLocation rl) {
+        stopAndReleaseKey(keyOf(rl));
+    }
+
+    public void stopAndRelease(String relativePath) {
+        if (relativePath.contains(":")) {
+            stopAndRelease(new ResourceLocation(relativePath));
+        } else {
+            stopAndRelease(new ResourceLocation("cobe", relativePath));
         }
     }
 
+    @Deprecated
+    public void stopAndReleaseKey(String key) {
+        VideoStreamPlayer player = activePlayers.remove(key);
+        if (player != null) player.stop();
+    }
+
+    private static String keyOf(File f)              { return "file_" + f.getAbsolutePath(); }
+    private static String keyOf(ResourceLocation rl) { return "rl_"   + rl.toString(); }
+
     public void stopAll() {
-        for (String key : activePlayers.keySet()) {
-            stopAndRelease(key);
+        Map<String, VideoStreamPlayer> snapshot;
+        synchronized (this) {
+            snapshot = new HashMap<>(activePlayers);
+            activePlayers.clear();
         }
+        snapshot.values().forEach(VideoStreamPlayer::stop);
     }
 }

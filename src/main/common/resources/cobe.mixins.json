@@ -6,7 +6,8 @@
   "plugin": "v.akfz.aslib.mixin.plugin.AsLibMixinPlugin",
   "mixins": [
     "client.EntityRenderersClientMixin",
-    "client.MinecraftMixin"
+    "client.MinecraftMixin",
+    "client.NativeImageMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -124,7 +124,6 @@ public class AnimationController {
         if (rootBones == null || cache == null) return;
 
         if (rootBones.isEmpty()) {
-            cache.prepareWrite();
             cache.publish();
             return;
         }
@@ -141,7 +140,6 @@ public class AnimationController {
         processQueue();
         rebuildSortedTracksIfDirty();
 
-        cache.prepareWrite();
         Matrix4f parentWorldMatrix = new Matrix4f();
         Matrix4f parentRestWorldMatrix = new Matrix4f();
 

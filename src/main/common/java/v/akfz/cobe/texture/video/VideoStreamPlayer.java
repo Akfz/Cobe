@@ -14,23 +14,27 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VideoStreamPlayer {
 
     private static final double MAX_FPS = 60.0;
     private static final long MIN_FRAME_DELAY_MS = 1L;
+    private static final long STOP_JOIN_TIMEOUT_MS = 1000L;
+    private static final long TEXTURE_RELEASE_TIMEOUT_MS = 2000L;
 
     private final File videoFile;
     private final ResourceLocation resourceLocation;
     private final boolean loop;
     private final Runnable onFinished;
 
-    private VideoTexture videoTexture;
-    private Thread videoDecodingThread;
+    private volatile VideoTexture videoTexture;
+    private volatile Thread videoDecodingThread;
 
+    private final AtomicBoolean stopped = new AtomicBoolean(false);
     private volatile boolean isPlaying = false;
     private volatile boolean isPaused  = false;
-    private volatile boolean stopped   = false;
 
     public VideoStreamPlayer(File videoFile, boolean loop, Runnable onFinished) {
         this.videoFile = videoFile;
@@ -49,31 +53,67 @@ public class VideoStreamPlayer {
     public synchronized void start() {
         if (isPlaying) return;
         this.isPlaying = true;
-        this.stopped = false;
+        this.stopped.set(false);
 
-        this.videoDecodingThread = new Thread(this::decodeLoop,
+        Thread t = new Thread(this::decodeLoop,
                 "Cobe-Video-" + (videoFile != null ? videoFile.getName() : String.valueOf(resourceLocation)));
-        this.videoDecodingThread.setDaemon(true);
-        this.videoDecodingThread.start();
+        t.setDaemon(true);
+        this.videoDecodingThread = t;
+        t.start();
     }
-
-    public synchronized void stop() {
-        if (stopped) return;
-        this.stopped = true;
+    
+    public void stop() {
+        if (!stopped.compareAndSet(false, true)) return;
         this.isPlaying = false;
 
         Thread t = this.videoDecodingThread;
         this.videoDecodingThread = null;
-        if (t != null) t.interrupt();
+        if (t != null) {
+            t.interrupt();
+            if (t != Thread.currentThread()) {
+                try {
+                    t.join(STOP_JOIN_TIMEOUT_MS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+
+        releaseTextureBlocking();
+    }
+
+    private void releaseTextureBlocking() {
+        VideoTexture tex = this.videoTexture;
+        if (tex == null) return;
+        this.videoTexture = null;
 
         Minecraft mc = Minecraft.getInstance();
+        if (mc.isSameThread()) {
+            releaseTextureInternal(tex);
+            return;
+        }
+
+        CompletableFuture<Void> future = new CompletableFuture<>();
         mc.execute(() -> {
-            if (this.videoTexture != null) {
-                mc.getTextureManager().release(this.videoTexture.getLocation());
-                this.videoTexture.close();
-                this.videoTexture = null;
+            try {
+                releaseTextureInternal(tex);
+                future.complete(null);
+            } catch (Throwable e) {
+                future.completeExceptionally(e);
             }
         });
+
+        try {
+            future.get(TEXTURE_RELEASE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            System.err.println("[Cobe] Texture release timeout: " + e.getMessage());
+        }
+    }
+
+    private void releaseTextureInternal(VideoTexture tex) {
+        Minecraft mc = Minecraft.getInstance();
+        try { mc.getTextureManager().release(tex.getLocation()); } catch (Throwable ignored) {}
+        try { tex.close(); } catch (Throwable ignored) {}
     }
 
     public void pause()  { isPaused = true; }
@@ -118,6 +158,10 @@ public class VideoStreamPlayer {
                 CompletableFuture<Void> initFuture = new CompletableFuture<>();
                 Minecraft.getInstance().execute(() -> {
                     try {
+                        if (stopped.get()) {
+                            initFuture.complete(null);
+                            return;
+                        }
                         this.videoTexture = new VideoTexture(w, h);
                         initFuture.complete(null);
                     } catch (Throwable t) {
@@ -130,6 +174,7 @@ public class VideoStreamPlayer {
                     System.err.println("[Cobe] Cannot create VideoTexture: " + e);
                     return;
                 }
+                if (stopped.get()) return;
             }
 
             ByteBuffer rgba = decoder.frameBuffer();
@@ -137,7 +182,7 @@ public class VideoStreamPlayer {
 
             int index = 0;
 
-            while (isPlaying && !stopped) {
+            while (isPlaying && !stopped.get()) {
                 if (isPaused) {
                     Thread.sleep(30);
                     continue;
@@ -150,6 +195,7 @@ public class VideoStreamPlayer {
                 if (!hasFrame) {
                     if (loop) {
                         index = 0;
+                        Thread.sleep(MIN_FRAME_DELAY_MS);
                         continue;
                     }
                     break;
@@ -185,7 +231,7 @@ public class VideoStreamPlayer {
             }
             isPlaying = false;
 
-            if (!loop && onFinished != null) {
+            if (!loop && onFinished != null && !stopped.get()) {
                 Minecraft.getInstance().execute(onFinished);
             }
         }

@@ -4,37 +4,47 @@ import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
+import org.lwjgl.system.MemoryUtil;
+import v.akfz.cobe.mixinterface.NativeImageAccessor;
 
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.UUID;
 
-/**
- * How to use : VideoPlayerManager.getInstance().getOrCreatePlayer("textures/siuu.mp4", true, () -> {});
- */
 public class VideoTexture extends DynamicTexture {
     private final ResourceLocation location;
     private final NativeImage backgroundBuffer;
     private final Object lock = new Object();
     private volatile boolean hasNewFrame = false;
+    private final long bufferAddress;
 
     public VideoTexture(int width, int height) {
         super(width, height, true);
         this.backgroundBuffer = new NativeImage(width, height, false);
+        this.bufferAddress = ((NativeImageAccessor) (Object) this.backgroundBuffer).getPixels();
         this.location = new ResourceLocation("cobe_video", "video_" + UUID.randomUUID().toString().replace("-", "_"));
         Minecraft.getInstance().getTextureManager().register(this.location, this);
     }
 
-    public void writePixels(IntBuffer intBuf,int width,int height) {
-        int[] row = new int[width];
+    public void writePixelsDirect(ByteBuffer directBuffer, int width, int height) {
         synchronized (lock) {
-            intBuf.rewind();
-            for (int y = 0; y < height; y++) {
-                intBuf.get(row, 0, width);
-                for (int x = 0; x < width; x++) {
-                    backgroundBuffer.setPixelRGBA(x, y, row[x]);
-                }
+            long bytesToCopy = (long) width * height * 4L;
+            long srcAddress = MemoryUtil.memAddress(directBuffer);
+            if (srcAddress != 0 && bufferAddress != 0) {
+                MemoryUtil.memCopy(srcAddress, bufferAddress, bytesToCopy);
+                hasNewFrame = true;
             }
-            hasNewFrame = true;
+        }
+    }
+
+    public void writePixels(IntBuffer intBuf, int width, int height) {
+        synchronized (lock) {
+            long bytesToCopy = (long) width * height * 4L;
+            long srcAddress = MemoryUtil.memAddress(intBuf);
+            if (srcAddress != 0 && bufferAddress != 0) {
+                MemoryUtil.memCopy(srcAddress, bufferAddress, bytesToCopy);
+                hasNewFrame = true;
+            }
         }
     }
 
@@ -47,8 +57,12 @@ public class VideoTexture extends DynamicTexture {
         synchronized (lock) {
             if (!hasNewFrame) return;
             NativeImage internalPixels = this.getPixels();
-            if (internalPixels != null) {
-                internalPixels.copyFrom(backgroundBuffer);
+            if (internalPixels != null && bufferAddress != 0) {
+                long ptr = ((NativeImageAccessor) (Object) internalPixels).getPixels();
+                if (ptr != 0) {
+                    long bytesToCopy = (long) backgroundBuffer.getWidth() * backgroundBuffer.getHeight() * 4L;
+                    MemoryUtil.memCopy(bufferAddress, ptr, bytesToCopy);
+                }
             }
             hasNewFrame = false;
         }

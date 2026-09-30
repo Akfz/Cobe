@@ -1,6 +1,6 @@
 package v.akfz.cobe.nat;
 
-import v.akfz.db.annotation.ProdOnly;
+import v.akfz.db.annotation.DevOnly;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,7 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-@ProdOnly //test
+@DevOnly //test
 public final class NativeVideoPlayer extends JPanel implements Runnable {
 
 	private static final String LIB_NAME = "cobe_native_decoder";
@@ -180,7 +180,7 @@ public final class NativeVideoPlayer extends JPanel implements Runnable {
 			System.exit(1);
 		}
 
-		//замени на свой файл (полный путь)
+		//change path
 		Path video = Paths.get("/home/yaxzlol/Загрузки/giphy.gif");
 		if (!Files.exists(video)) {
 			System.err.println("file not found: " + video.toAbsolutePath());

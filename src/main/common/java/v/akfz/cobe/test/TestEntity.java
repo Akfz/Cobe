@@ -15,10 +15,12 @@ import v.akfz.cobe.core.cache.HitboxCache;
 import v.akfz.cobe.core.cache.ModelCache;
 import v.akfz.cobe.core.hitbox.ActiveHitbox;
 import v.akfz.cobe.core.object.AnimatedObject;
+import v.akfz.db.annotation.DevOnly;
 
 import java.util.List;
 import java.util.Map;
 
+@DevOnly
 public class TestEntity extends Entity implements AnimatedObject {
     private final AnimationController controller = new AnimationController(this);
     private final AnimatedObjectCache cache = new AnimatedObjectCache();
@@ -57,7 +59,7 @@ public class TestEntity extends Entity implements AnimatedObject {
 
     @Override
     public String getStrId() {
-        return "test" + this.getId();
+        return "test_" + this.getUUID();
     }
 
     @Override
