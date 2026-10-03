@@ -41,6 +41,13 @@ public final class FileLoader {
         HitboxCache.addCacheHitbox(data, fileName);
     }
 
+    public static void loadModelFile(ResourceLocation location, ResourceManager manager) {
+        ModelData data = GsonHelper.read(location, ModelData.class, manager);
+        if (data == null || data.nameOfModel == null) return;
+
+        ModelCache.addCacheModel(data, data.nameOfModel);
+    }
+
     public static void loadModelFile(Path path) {
         ModelData data = GsonHelper.read(path, ModelData.class);
         if (data == null || data.nameOfModel == null) return;

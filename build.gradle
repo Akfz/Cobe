@@ -53,7 +53,6 @@ jni {
         run.libraries.from(files("src/cpp/build/libcobe_native_decoder.so"))
         jar.libraries.from(files("src/cpp/build/libcobe_native_decoder.so"))
 
-        //Если тест с винды, вставить путь отсюда в run.libraries
         jar.platform.win.from(layout.projectDirectory.file("src/cpp/build-win/cobe_native_decoder.dll"))
     }
 }
@@ -83,6 +82,22 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release  = Integer.parseInt(project.findProperty('java_version') ?: '17')
 }
+
+/*
+//GLAZE
+def lwjglVersion = '3.3.1'
+dependencies {
+    implementation "org.lwjgl:lwjgl-vulkan:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-vma:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-vma:${lwjglVersion}:natives-linux"
+    implementation "org.lwjgl:lwjgl-vma:${lwjglVersion}:natives-windows"
+    implementation "org.lwjgl:lwjgl-vma:${lwjglVersion}:natives-macos"
+    implementation "org.lwjgl:lwjgl-shaderc:${lwjglVersion}"
+    implementation "org.lwjgl:lwjgl-shaderc:${lwjglVersion}:natives-linux"
+    implementation "org.lwjgl:lwjgl-shaderc:${lwjglVersion}:natives-windows"
+    implementation "org.lwjgl:lwjgl-shaderc:${lwjglVersion}:natives-macos"
+}
+*/
 
 sourceSets {
     main {
