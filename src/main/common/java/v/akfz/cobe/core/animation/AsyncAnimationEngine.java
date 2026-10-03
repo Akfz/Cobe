@@ -274,99 +274,9 @@ public class AsyncAnimationEngine {
                     cache
             );
 
-            performAsyncSkinning(rootBones, cache);
         } catch (Exception e) {
             System.err.println("[Cobe-Engine] Ошибка при обновлении анимации " + id);
             e.printStackTrace();
-        }
-    }
-
-    private void performAsyncSkinning(List<BoneRData> rootBones, AnimatedObjectCache cache) {
-        Matrix4f[] skinMats = cache.getWriteIndexedSkinMatrices();
-        for (BoneRData root : rootBones) {
-            skinBoneRecursively(root, cache, skinMats);
-        }
-    }
-
-    private void skinBoneRecursively(BoneRData bone, AnimatedObjectCache cache, Matrix4f[] skinMats) {
-        if (bone.meshes() != null) {
-            for (MeshRData mesh : bone.meshes()) {
-                if (!mesh.isSkinned() || mesh.skinningData() == null) continue;
-
-                List<float[]> restVertices = mesh.vertices();
-                int vCount = restVertices.size();
-                if (vCount == 0) continue;
-
-                float[] out = cache.getOrCreateWriteSkinnedBuffer(mesh, vCount * 3);
-                List<MeshRData.SkinningData> skins = mesh.skinningData();
-                int skinsSize = skins.size();
-
-                for (int i = 0; i < vCount; i++) {
-                    float[] v = restVertices.get(i);
-                    int idx = i * 3;
-                    if (i >= skinsSize) {
-                        out[idx]     = v[0];
-                        out[idx + 1] = v[1];
-                        out[idx + 2] = v[2];
-                        continue;
-                    }
-
-                    MeshRData.SkinningData skin = skins.get(i);
-                    float px = v[0], py = v[1], pz = v[2];
-                    float sx = 0, sy = 0, sz = 0;
-                    boolean hasValidWeight = false;
-
-                    float[] weights = skin.weights();
-                    int[] jointIndices = skin.jointIndices();
-                    String[] joints = skin.joints();
-                    int limit = Math.min(4, weights.length);
-
-                    for (int j = 0; j < limit; j++) {
-                        float w = weights[j];
-                        if (w <= 0.0f) continue;
-
-                        int jointId = -1;
-                        if (jointIndices != null && j < jointIndices.length) {
-                            jointId = jointIndices[j];
-                        }
-                        if (jointId < 0 && joints != null && j < joints.length && joints[j] != null) {
-                            jointId = cache.getOrRegisterBoneId(joints[j]);
-                            if (jointIndices != null && j < jointIndices.length) {
-                                jointIndices[j] = jointId;
-                            }
-                        }
-
-                        if (jointId < 0 || jointId >= skinMats.length) continue;
-                        Matrix4f skinMat = skinMats[jointId];
-                        if (skinMat == null) continue;
-
-                        float tx = skinMat.m00() * px + skinMat.m10() * py + skinMat.m20() * pz + skinMat.m30();
-                        float ty = skinMat.m01() * px + skinMat.m11() * py + skinMat.m21() * pz + skinMat.m31();
-                        float tz = skinMat.m02() * px + skinMat.m12() * py + skinMat.m22() * pz + skinMat.m32();
-
-                        sx += tx * w;
-                        sy += ty * w;
-                        sz += tz * w;
-                        hasValidWeight = true;
-                    }
-
-                    if (hasValidWeight) {
-                        out[idx]     = sx;
-                        out[idx + 1] = sy;
-                        out[idx + 2] = sz;
-                    } else {
-                        out[idx]     = px;
-                        out[idx + 1] = py;
-                        out[idx + 2] = pz;
-                    }
-                }
-            }
-        }
-
-        if (bone.children() != null) {
-            for (BoneRData child : bone.children()) {
-                skinBoneRecursively(child, cache, skinMats);
-            }
         }
     }
 }
