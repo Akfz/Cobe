@@ -1,3 +1,4 @@
+/*
 package v.akfz.cobe.test;
 
 import net.minecraft.world.entity.EntityType;
@@ -10,11 +11,11 @@ import v.akfz.db.annotation.DevOnly;
 
 @GenerateRegistries(modId = "cobe")
 public class CobeRegistries {
-    /*
     static {
         AsLib.EVENT_BUS.register(new RegisterEntityRendererListenerTEST());
     }
     @RegisterModule(id = "cobe:testentity")
     public static EntityType<TestEntity> TEST_ENTITY = RegistryHelper.createEntity(TestEntity::new,MobCategory.MISC,1f,1f,"cobe:testentity");
-     */
+
 }
+*/
