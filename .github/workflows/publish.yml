@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: publish-maven
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -45,7 +49,7 @@ jobs:
           rm winjdk.zip
           ls -la java_d/winjava/
 
-      - name: Determine Version from Branch Name
+      - name: Determine Version
         run: |
           VERSION="${GITHUB_REF_NAME}-SNAPSHOT"
           echo "COBE_VERSION=${VERSION}" >> $GITHUB_ENV
@@ -57,17 +61,29 @@ jobs:
       - name: Build forge
         run: ./gradlew build -Pdbuild.loader=forge -Pmod_version=${{ env.COBE_VERSION }}
 
-      - name: Collect fabric artifacts
+      - name: Collect artifacts into Maven layout
         run: |
-          mkdir -p build/repo/fabric
-          SRC=$(find build -type f -name '*-fabric-dev.jar' | head -n1)
-          if [ -z "$SRC" ]; then
+          FABRIC_DIR="build/repo/v/akfz/cobe-fabric/${COBE_VERSION}"
+          FORGE_DIR="build/repo/v/akfz/cobe-forge/${COBE_VERSION}"
+          mkdir -p "$FABRIC_DIR" "$FORGE_DIR"
+
+          FABRIC_SRC=$(find build -type f -name '*-fabric-dev.jar' | head -n1)
+          if [ -z "$FABRIC_SRC" ]; then
             echo "=== Debug: all jars in build/ ==="
             find build -name "*.jar" -type f
             echo "No dev jar found for fabric!" && exit 1
           fi
-          cp -v "$SRC" "build/repo/fabric/cobe-fabric-${COBE_VERSION}.jar"
-          cat > "build/repo/fabric/cobe-fabric-${COBE_VERSION}.pom" <<EOF
+          cp -v "$FABRIC_SRC" "$FABRIC_DIR/cobe-fabric-${COBE_VERSION}.jar"
+
+          FORGE_SRC=$(find build -type f -name '*-forge-dev.jar' | head -n1)
+          if [ -z "$FORGE_SRC" ]; then
+            echo "=== Debug: all jars in build/ ==="
+            find build -name "*.jar" -type f
+            echo "No dev jar found for forge!" && exit 1
+          fi
+          cp -v "$FORGE_SRC" "$FORGE_DIR/cobe-forge-${COBE_VERSION}.jar"
+
+          cat > "$FABRIC_DIR/cobe-fabric-${COBE_VERSION}.pom" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <project xmlns="http://maven.apache.org/POM/4.0.0">
             <modelVersion>4.0.0</modelVersion>
@@ -77,19 +93,8 @@ jobs:
             <packaging>jar</packaging>
           </project>
           EOF
-          ls -la build/repo/fabric/
 
-      - name: Collect forge artifacts
-        run: |
-          mkdir -p build/repo/forge
-          SRC=$(find build -type f -name '*-forge-dev.jar' | head -n1)
-          if [ -z "$SRC" ]; then
-            echo "=== Debug: all jars in build/ ==="
-            find build -name "*.jar" -type f
-            echo "No dev jar found for forge!" && exit 1
-          fi
-          cp -v "$SRC" "build/repo/forge/cobe-forge-${COBE_VERSION}.jar"
-          cat > "build/repo/forge/cobe-forge-${COBE_VERSION}.pom" <<EOF
+          cat > "$FORGE_DIR/cobe-forge-${COBE_VERSION}.pom" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <project xmlns="http://maven.apache.org/POM/4.0.0">
             <modelVersion>4.0.0</modelVersion>
@@ -99,20 +104,13 @@ jobs:
             <packaging>jar</packaging>
           </project>
           EOF
-          ls -la build/repo/forge/
 
-      - name: Deploy fabric to maven
+          echo "=== Final repo layout ==="
+          find build/repo -type f
+
+      - name: Deploy to maven branch
         uses: jamesives/github-pages-deploy-action@v4
         with:
-          folder: build/repo/fabric
+          folder: build/repo
           branch: maven
-          target-folder: v/akfz/cobe-fabric/${{ env.COBE_VERSION }}
-          clean: true
-
-      - name: Deploy forge to maven
-        uses: jamesives/github-pages-deploy-action@v4
-        with:
-          folder: build/repo/forge
-          branch: maven
-          target-folder: v/akfz/cobe-forge/${{ env.COBE_VERSION }}
-          clean: true
+          clean: false
