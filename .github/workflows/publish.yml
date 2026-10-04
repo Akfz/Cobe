@@ -108,9 +108,18 @@ jobs:
           echo "=== Final repo layout ==="
           find build/repo -type f
 
+      - name: Delete existing maven branch
+        run: |
+          if git ls-remote --exit-code --heads origin maven >/dev/null 2>&1; then
+            echo "maven branch exists, deleting..."
+            git push origin --delete maven
+          else
+            echo "maven branch does not exist, nothing to delete"
+          fi
+
       - name: Deploy to maven branch
         uses: jamesives/github-pages-deploy-action@v4
         with:
           folder: build/repo
           branch: maven
-          clean: false
+          clean: true
