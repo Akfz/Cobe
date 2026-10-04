@@ -1,3 +1,4 @@
+/*
 package v.akfz.cobe.test;
 
 import v.akfz.aslib.event.api.Listener;
@@ -15,3 +16,4 @@ public class RegisterEntityRendererListenerTEST implements Listener {
         event.register(CobeRegistries.TEST_ENTITY, TestEntityRenderer::new);
     }
 }
+*/
