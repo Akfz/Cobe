@@ -40,7 +40,7 @@ public final class FileLoader {
         String fileName = path.getFileName().toString();
         HitboxCache.addCacheHitbox(data, fileName);
     }
-
+    //
     public static void loadModelFile(ResourceLocation location, ResourceManager manager) {
         ModelData data = GsonHelper.read(location, ModelData.class, manager);
         if (data == null || data.nameOfModel == null) return;
