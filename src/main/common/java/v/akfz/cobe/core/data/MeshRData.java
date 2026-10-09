@@ -81,9 +81,9 @@ public record MeshRData(
 
             if (count == 4) {
                 offset = putVertex(buffer, offset, vertices.get(vIdx[0]), getUvSafe(uvs, uvIdx, 0), nx, ny, nz);
-                offset = putVertex(buffer, offset, vertices.get(vIdx[3]), getUvSafe(uvs, uvIdx, 1), nx, ny, nz);
+                offset = putVertex(buffer, offset, vertices.get(vIdx[3]), getUvSafe(uvs, uvIdx, 3), nx, ny, nz);
                 offset = putVertex(buffer, offset, vertices.get(vIdx[2]), getUvSafe(uvs, uvIdx, 2), nx, ny, nz);
-                offset = putVertex(buffer, offset, vertices.get(vIdx[1]), getUvSafe(uvs, uvIdx, 3), nx, ny, nz);
+                offset = putVertex(buffer, offset, vertices.get(vIdx[1]), getUvSafe(uvs, uvIdx, 1), nx, ny, nz);
             } else {
                 for (int i = 1; i < count - 1; i++) {
                     offset = putVertex(buffer, offset, vertices.get(vIdx[0]),     getUvSafe(uvs, uvIdx, 0),     nx, ny, nz);

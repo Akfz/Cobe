@@ -24,23 +24,25 @@ import java.util.Map;
 public class TestEntity extends Entity implements AnimatedObject {
     private final AnimationController controller = new AnimationController(this);
     private final AnimatedObjectCache cache = new AnimatedObjectCache();
-    private final List<ActiveHitbox> hitboxes;
+    //private final List<ActiveHitbox> hitboxes;
 
     public TestEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
         fastInit();
-
+/*
         Map<String,Matrix4f> currentBoneMatrices = cache.getAllBoneWorldMatrices();
         System.out.println(HitboxCache.getFromCache());
         //XD
         List<ActiveHitbox> activeHitboxes = ActiveHitbox.buildFromData(HitboxCache.getFromCache("test.hb"), currentBoneMatrices);
         System.out.println(activeHitboxes + " " + GlobalUtils.isClientSide());
         this.hitboxes = activeHitboxes;
+ */
     }
-
+/*
     public List<ActiveHitbox> getHitboxes() {
         return this.hitboxes;
     }
+ */
 
     @Override
     public void remove(@NotNull RemovalReason reason) {

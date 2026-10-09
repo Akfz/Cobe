@@ -17,7 +17,7 @@ import java.util.Map;
 
 @DevOnly
 public class TestEntityRenderer extends EntityRenderer<TestEntity> implements DefaultCobeRenderer<TestEntity> {
-    private final int type = 1; //0 - null, 1 - video 2 - buffer. I dont fucking remember what is it, but its works (idk about buffer)
+    private final int type = 2; //0 - null, 1 - video 2 - texture.
 
     public TestEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -51,9 +51,9 @@ public class TestEntityRenderer extends EntityRenderer<TestEntity> implements De
         if (type == 1) {
             return VideoPlayerManager.getInstance().getOrCreatePlayer(new ResourceLocation("eww", "test/video.mp4"), true, () -> {});
         } else if (type == 2){
-            return null;
+            return new ResourceLocation("eww", "test/telo_w.png");
         } else {
-            return DefaultCobeRenderer.super.getBoneTextureOverride(boneName);
+            return null;
         }
     }
 
